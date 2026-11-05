@@ -137,7 +137,7 @@ body { overflow: hidden; }
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: flex-end;
+  justify-content: center;
   padding-bottom: 6px;
 }
 
@@ -188,12 +188,12 @@ body { overflow: hidden; }
 
 .pet {
   display: block;
-  width: 44vw;
-  max-width: 190px;
-  min-width: 120px;
+  width: 62vw;
+  max-width: 280px;
+  min-width: 160px;
   height: auto;
   image-rendering: auto;
-  filter: drop-shadow(0 12px 18px rgba(0, 0, 0, 0.35));
+  filter: drop-shadow(0 14px 22px rgba(0, 0, 0, 0.42));
   user-select: none;
   pointer-events: none;
 }
@@ -220,9 +220,9 @@ body { overflow: hidden; }
 
 .exp-wrap {
   position: relative;
-  width: 62%;
+  width: 66%;
   height: 8px;
-  margin-top: 18px;
+  margin-top: 16px;
   border-radius: 999px;
   background: rgba(255, 255, 255, 0.12);
   overflow: hidden;
@@ -769,14 +769,14 @@ code {
 
 /* ---------- 小屏适配 ---------- */
 @media (max-height: 640px) {
-  .pet { width: 34vw; max-width: 140px; }
+  .pet { width: 48vw; max-width: 210px; }
   .exp-wrap { margin-top: 12px; }
   .stats { margin-top: 14px; }
   .bubble { font-size: 13px; }
 }
 
 @media (min-width: 560px) {
-  .pet { max-width: 220px; }
+  .pet { max-width: 320px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
