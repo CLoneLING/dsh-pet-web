@@ -93,3 +93,31 @@ git push -u origin main
 ```
 
 25 个文件、约 7.5 MB（含 14 个 GIF）。`.gitignore` 已排除 `dist/`、`node_modules/` 以及工作区里与本项目无关的文件。
+
+---
+
+## 方案 E：Cloudflare Workers（静态资源）
+
+如果你在 Cloudflare 建的是 **Worker**（不是 Pages），构建日志里就不能用 `npx wrangler preview`
+——那是 beta 命令，需要额外的 `previews` 配置，而且它产出的是预览地址，不是正式站点。
+
+正确做法：
+
+1. 仓库根目录已有 `wrangler.jsonc`：
+
+   ```jsonc
+   {
+     "name": "dsh-pet-web",
+     "compatibility_date": "2026-11-05",
+     "assets": { "directory": "./", "not_found_handling": "404-page" }
+   }
+   ```
+
+   `name` 要和你在 Cloudflare 上看到的项目名一致，否则会新建一个 Worker。
+
+2. 把部署命令从 `npx wrangler preview` 改成 **`npx wrangler deploy`**
+3. 构建命令留空，根目录保持 `/`
+4. `.assetsignore` 会把 `.git/`、`scripts/`、`dist/`、`*.md` 排除，只上传网站真正需要的文件
+
+> 纯静态站更推荐 **Pages**（见方案 C）：不用 wrangler、不用配置文件、连 `compatibility_date` 都不用管。
+> Workers 的优势只有"以后想加后端逻辑"，现在用不到。

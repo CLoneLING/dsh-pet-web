@@ -1,0 +1,10 @@
+# 不要把仓库周边的东西当成网站资源传上去
+.git/
+.gitignore
+.github/
+node_modules/
+dist/
+scripts/
+*.md
+wrangler.jsonc
+.assetsignore
