@@ -1037,3 +1037,49 @@ body.wx-open #app { padding-top: 46px; }
   text-align: left;
   text-align-last: left;
 }
+
+/* ---------- 裁掉素材的透明留白：让角色真正占满舞台 ----------
+ * 原始画布 220x124 / 640x360，角色只占约 34% 宽、75% 高。
+ * 这里用"放大素材 + 框体裁剪"的方式把留白切掉：
+ *   框体 1 单位宽 → 媒体宽 2.94（= 1/0.34），角色正好铺满框体宽；
+ *   框体高 122%（角色 bbox 78x95 的比例），不会露出上下空白。
+ */
+.pet-wrap {
+  width: 66vw;
+  max-width: 300px;
+  height: 0;
+  padding: 0;
+  padding-top: 122%;
+  overflow: hidden;
+  z-index: 1;
+  animation: bob 3.6s ease-in-out infinite;
+}
+
+.pet-wrap .pet,
+.pet-wrap #petVideo,
+.pet-wrap #petImg {
+  position: absolute;
+  left: 50%;
+  top: 47%;
+  width: 294%;
+  max-width: none;
+  min-width: 0;
+  height: auto;
+  transform: translate(-50%, -50%);
+}
+
+.pet-wrap .pet-shadow {
+  left: 50%;
+  bottom: 4%;
+  width: 52%;
+  height: 8px;
+  z-index: 0;
+}
+
+/* 小屏时别太满 */
+@media (max-height: 640px) {
+  .pet-wrap { width: 56vw; }
+}
+
+/* 裁剪后不再需要外发光阴影（会被框体切断） */
+.pet-wrap .pet { filter: contrast(1.04) saturate(1.06); }
