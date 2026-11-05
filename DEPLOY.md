@@ -1,5 +1,8 @@
 # 部署与分发
 
+> 当前线上地址：**https://dsh-pet-web.pages.dev/**（Cloudflare Pages，作者 YuMoo）
+> 仓库：https://github.com/CLoneLING/dsh-pet-web
+
 这个项目是**纯静态**的：一个 HTML + 一个素材目录。没有构建、没有 Node 服务、没有数据库。
 
 先做一个判断：

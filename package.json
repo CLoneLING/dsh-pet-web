@@ -1,0 +1,45 @@
+{
+  "name": "dsh-pet-web",
+  "version": "0.2.1",
+  "description": "蓝毛小女仆 · 电子宠物 —— 纯前端、零后端的网页宠物，自带 API Key 引导，会聊天、会长大",
+  "author": "YuMoo <https://github.com/CLoneLING>",
+  "license": "MIT",
+  "private": true,
+  "type": "module",
+  "keywords": [
+    "deepseek",
+    "dsh",
+    "pet",
+    "tamagotchi",
+    "chatbot",
+    "webview",
+    "harmonyos",
+    "pwa"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/CLoneLING/dsh-pet-web.git"
+  },
+  "homepage": "https://dsh-pet-web.pages.dev/",
+  "bugs": {
+    "url": "https://github.com/CLoneLING/dsh-pet-web/issues"
+  },
+  "scripts": {
+    "build": "node scripts/bundle.mjs",
+    "build:no-inline": "node scripts/bundle.mjs --no-inline",
+    "assets": "node scripts/fetch-assets.mjs",
+    "test": "node scripts/smoke.mjs"
+  },
+  "devDependencies": {
+    "jsdom": "^30.0.0"
+  },
+  "files": [
+    "index.html",
+    "style.css",
+    "app.js",
+    "404.html",
+    "assets/",
+    "LICENSE",
+    "THIRD-PARTY-NOTICES.md"
+  ]
+}

@@ -9,6 +9,8 @@
 <meta property="og:title" content="蓝毛小女仆 · 电子宠物">
 <meta property="og:description" content="填上自己的 API Key，认养一只会说话、会长大的小女仆。纯前端，数据只在你手机里。">
 <meta property="og:type" content="website">
+<meta property="og:url" content="https://dsh-pet-web.pages.dev/">
+<link rel="canonical" href="https://dsh-pet-web.pages.dev/">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ctext x='32' y='50' font-size='46' text-anchor='middle'%3E%F0%9F%90%BE%3C/text%3E%3C/svg%3E">
 <title>蓝毛小女仆 · 电子宠物</title>
 <link rel="stylesheet" href="style.css?v=021">
@@ -35,6 +37,9 @@
       <span id="streakBadge" class="lv ghost" hidden>连续 1 天</span>
     </div>
     <div class="topbar-btns">
+      <a id="btnRepo" class="icon-btn" href="https://github.com/CLoneLING/dsh-pet-web" target="_blank" rel="noopener" aria-label="GitHub 仓库" title="GitHub 仓库">
+        <svg viewBox="0 0 16 16" width="16" height="16" fill="currentColor" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82a7.4 7.4 0 0 1 2-.27c.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8z"/></svg>
+      </a>
       <button id="btnOnboarding" class="icon-btn" aria-label="使用引导" title="使用引导">?</button>
       <button id="btnSettings" class="icon-btn" aria-label="设置" title="设置">⚙</button>
     </div>
@@ -90,7 +95,7 @@
   <footer class="foot">
     <span id="keyState" class="key-state dim">未配置 API Key（演示模式）</span>
     <span id="balanceChip" class="balance" hidden></span>
-    <p class="foot-note">对话由 AI 生成，仅供娱乐。</p>
+    <p class="foot-note">By <a href="https://github.com/CLoneLING/dsh-pet-web" target="_blank" rel="noopener">YuMoo</a> · 对话由 AI 生成，仅供娱乐。</p>
   </footer>
 </div>
 
@@ -175,12 +180,13 @@
       </div>
 
       <div class="about">
+        <p>作者 <b>YuMoo</b> · 开源在 <a href="https://github.com/CLoneLING/dsh-pet-web" target="_blank" rel="noopener">GitHub</a> · 站点 <a href="https://dsh-pet-web.pages.dev/" target="_blank" rel="noopener">dsh-pet-web.pages.dev</a></p>
         <p>宠物形象与动作素材来自 <a href="https://github.com/PC2005-cloud/dsh-pet" target="_blank" rel="noopener">PC2005-cloud/dsh-pet</a>（MIT）。本页面不含任何后端，所有数据都在你的浏览器里。</p>
-        <p class="dim">版本 0.2.0 · 纯前端 · 无账号 · 无服务器</p>
+        <p class="dim">版本 0.2.1 · 纯前端 · 无账号 · 无服务器</p>
 
         <details class="lic">
           <summary>开源许可（MIT）</summary>
-          <p>Copyright (c) 2026 dsh-pet-web contributors</p>
+          <p>Copyright (c) 2026 YuMoo</p>
           <p>Copyright (c) 2026 PC2005-cloud（宠物素材）</p>
           <p>Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:</p>
           <p>The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.</p>

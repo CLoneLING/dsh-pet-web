@@ -1230,3 +1230,10 @@ body.wx-open #app { padding-top: 46px; }
 }
 .pet-wrap:active { cursor: grabbing; }
 .pet-wrap.dragging { cursor: grabbing; animation: none; }
+
+/* ---------- 顶栏仓库按钮 ---------- */
+a.icon-btn {
+  text-decoration: none;
+  color: var(--text);
+}
+.icon-btn svg { display: block; }
