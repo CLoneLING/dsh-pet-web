@@ -386,9 +386,10 @@
   var wanderTimer = null;
   var lastX = 0;
 
-  function movePet(x, y) {
+  function movePet(x, y, fast) {
     var layer = $('petLayer');
     if (!layer) return;
+    layer.style.transitionDuration = fast ? '0.22s' : '2.4s';
     layer.style.setProperty('--px', Math.round(x) + 'px');
     layer.style.setProperty('--py', Math.round(y) + 'px');
     var wrap = $('petWrap');
@@ -425,7 +426,7 @@
     var box = stageBox();
     if (!box) return;
     var maxX = Math.max(0, box.width / 2 - 80);
-    movePet(clamp(dx, -1, 1) * maxX * 0.85, clamp(dy, -1, 1) * 42);
+    movePet(clamp(dx, -1, 1) * maxX * 0.85, clamp(dy, -1, 1) * 42, true);
   }
 
   function onMouseMove(e) {
@@ -436,22 +437,51 @@
                 ((e.clientY - box.top) / box.height) * 2 - 1);
   }
 
+  var tiltEvents = 0;
+
   function onTilt(e) {
     if (!S.settings.follow) return;
-    var g = Number(e.gamma) || 0;
-    var b = Number(e.beta) || 0;
+    var g = Number(e.gamma);
+    var b = Number(e.beta);
+    if (!isFinite(g) && !isFinite(b)) return;   // 事件来了但没数据
+    tiltEvents++;
     tiltActive = true;
-    applyFollow(g / 35, (b - 45) / 90);
+    applyFollow((isFinite(g) ? g : 0) / 35, ((isFinite(b) ? b : 45) - 45) / 90);
+  }
+
+  function onStageTouch(e) {
+    if (!S.settings.follow) return;
+    var t = e.touches && e.touches[0];
+    if (!t) return;
+    var box = stageBox();
+    if (!box || !box.width) return;
+    applyFollow(((t.clientX - box.left) / box.width) * 2 - 1,
+                ((t.clientY - box.top) / box.height) * 2 - 1);
   }
 
   function enableTilt() {
-    if (typeof DeviceOrientationEvent === 'undefined') { toast('这台设备没有体感'); return; }
+    if (typeof DeviceOrientationEvent === 'undefined') {
+      toast('这个浏览器不提供体感接口');
+      return;
+    }
     var start = function () {
       window.addEventListener('deviceorientation', onTilt, true);
+      window.addEventListener('deviceorientationabsolute', onTilt, true);
       S.settings.follow = true;
-      $('inpFollow').checked = true;
+      if ($('inpFollow')) $('inpFollow').checked = true;
       save();
-      toast('体感已开启，倾斜手机试试');
+      tiltEvents = 0;
+      toast('已开启，倾斜手机试试（Android 不会弹授权框）');
+      setTimeout(function () {
+        if (tiltEvents === 0) {
+          toast('没收到方向数据：可能是设备没陀螺仪，或浏览器屏蔽了传感器');
+          S.settings.follow = false;
+          if ($('inpFollow')) $('inpFollow').checked = false;
+          save();
+        } else {
+          toast('收到体感数据 ' + tiltEvents + ' 次，可以倾斜了');
+        }
+      }, 2200);
     };
     if (typeof DeviceOrientationEvent.requestPermission === 'function') {
       DeviceOrientationEvent.requestPermission().then(function (res) {
@@ -849,8 +879,8 @@
     $('inpKey').value = S.settings.apiKey;
     $('inpModel').value = S.settings.model || 'deepseek-chat';
     $('inpHd').checked = S.settings.hd !== false;
-    $('inpWander').checked = !!S.settings.wander;
-    $('inpFollow').checked = !!S.settings.follow;
+    if ($('inpWander')) $('inpWander').checked = !!S.settings.wander;
+    if ($('inpFollow')) $('inpFollow').checked = !!S.settings.follow;
     $('keyMsg').hidden = true;
     $('foodMsg').hidden = true;
     $('settings').hidden = false;
@@ -862,8 +892,8 @@
     S.settings.apiKey = ($('inpKey').value || '').trim();
     S.settings.model = $('inpModel').value || 'deepseek-chat';
     S.settings.hd = $('inpHd').checked;
-    S.settings.wander = $('inpWander').checked;
-    S.settings.follow = $('inpFollow').checked;
+    if ($('inpWander')) S.settings.wander = $('inpWander').checked;
+    if ($('inpFollow')) S.settings.follow = $('inpFollow').checked;
     startWander();
     setState(curState);
     render();
@@ -1195,7 +1225,7 @@
 
   /* ========== 事件绑定 ========== */
 
-  function bind() {
+  function bindInner() {
     var vid = $('petVideo');
     if (vid) {
       vid.onerror = function () {
@@ -1212,9 +1242,14 @@
       ci.addEventListener('blur', function () { chatOpen = false; });
     }
     var stageEl = $('stage');
-    if (stageEl) stageEl.addEventListener('mousemove', onMouseMove);
-    $('btnTilt').onclick = enableTilt;
-    $('btnBalance').onclick = function () { refreshBalance(false); };
+    if (stageEl) {
+      stageEl.addEventListener('mousemove', onMouseMove);
+      stageEl.addEventListener('touchmove', onStageTouch, { passive: true });
+    }
+    var tiltBtn = $('btnTilt');
+    if (tiltBtn) tiltBtn.onclick = enableTilt;
+    var balBtn = $('btnBalance');
+    if (balBtn) balBtn.onclick = function () { refreshBalance(false); };
 
     $('chatForm').onsubmit = function (e) {
       e.preventDefault();
@@ -1528,6 +1563,8 @@
       list.push({ name: 'DeepSeek 接口', ok: r.ok, msg: r.msg });
       var cur = S.settings.apiKey ? '已填写' : '未填写（演示模式）';
       list.push({ name: 'API Key', ok: !!S.settings.apiKey, msg: cur });
+      var hasTilt = typeof DeviceOrientationEvent !== 'undefined';
+      list.push({ name: '体感传感器', ok: hasTilt, msg: hasTilt ? '接口可用（Android 无授权弹窗，iOS 才弹）' : '浏览器不提供 deviceorientation' });
       list.push({ name: '存档', ok: true, msg: 'Lv.' + levelInfo(S.exp).lv + ' · 经验 ' + S.exp + ' · 会话 ' + S.chats });
       renderDiag(list);
     }).catch(function (e) {
@@ -1564,6 +1601,43 @@
       say('素材没加载出来…点右上角「?」做个检查。');
       toast('素材加载失败，可以运行体检看看');
     });
+  }
+
+  // 旧缓存页面 + 新脚本时，按钮会全部失效；这里给出可点的自愈入口
+  function showVerBar() {
+    if (document.getElementById('verBar')) return;
+    var bar = document.createElement('div');
+    bar.id = 'verBar';
+    bar.className = 'ver-bar';
+    bar.innerHTML = '<span>页面与脚本版本不一致，点右侧刷新</span><button type="button">刷新</button>';
+    bar.getElementsByTagName('button')[0].onclick = function () {
+      var base = location.href.split('#')[0].split('?')[0];
+      location.replace(base + '?fresh=' + Date.now());
+    };
+    document.body.appendChild(bar);
+  }
+
+  function guardVersion() {
+    var need = ['petLayer', 'chatBar', 'stage', 'inpWander', 'inpFollow', 'btnTilt', 'btnBalance'];
+    var miss = [];
+    for (var i = 0; i < need.length; i++) {
+      if (!$(need[i])) miss.push(need[i]);
+    }
+    if (miss.length) {
+      showVerBar();
+      return false;
+    }
+    return true;
+  }
+
+  function bind() {
+    if (!guardVersion()) return;
+    try {
+      bindInner();
+    } catch (e) {
+      toast('界面初始化出错：' + ((e && e.message) || '未知'));
+      showVerBar();
+    }
   }
 
   /* ========== 启动 ========== */

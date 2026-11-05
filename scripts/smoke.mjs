@@ -15,9 +15,9 @@ const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const target = process.argv[2] ? path.resolve(process.cwd(), process.argv[2]) : path.join(ROOT, 'index.html');
 
 let html = fs.readFileSync(target, 'utf8');
-if (html.includes('<script src="app.js"></script>')) {
+if (/<script src="app\.js[^"]*"><\/script>/.test(html)) {
   const js = fs.readFileSync(path.join(ROOT, 'app.js'), 'utf8').replace(/<\/script>/g, '<\\/script>');
-  html = html.replace('<script src="app.js"></script>', '<script>' + js + '</script>');
+  html = html.replace(/<script src="app\.js[^"]*"><\/script>/, '<script>' + js + '</script>');
 }
 
 const logs = [];

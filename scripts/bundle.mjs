@@ -20,8 +20,8 @@ const js = await read('app.js');
 
 const safeScript = js.replace(/<\/script>/g, '<\\/script>');
 const baseHtml = html
-  .replace('<link rel="stylesheet" href="style.css">', `<style>\n${css}\n</style>`)
-  .replace('<script src="app.js"></script>', `<script>\n/* built ${stamp} */\n${safeScript}\n</script>`);
+  .replace(/<link rel="stylesheet" href="style\.css[^"]*">/, `<style>\n${css}\n</style>`)
+  .replace(/<script src="app\.js[^"]*"><\/script>/, `<script>\n/* built ${stamp} */\n${safeScript}\n</script>`);
 
 await fs.rm(DIST, { recursive: true, force: true });
 await fs.mkdir(DIST, { recursive: true });
