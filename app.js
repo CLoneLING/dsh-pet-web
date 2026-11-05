@@ -1079,6 +1079,25 @@
       else wizGo(3);
     };
     $('btnFloatClose').onclick = hideFloatHint;
+    $('btnDiagOpen').onclick = runDiag;
+    $('btnDiagClose').onclick = function () { $('diag').hidden = true; };
+    $('btnDiagRerun').onclick = runDiag;
+    $('btnDiagCopy').onclick = copyDiag;
+    $('diag').onclick = function (e) { if (e.target === $('diag')) $('diag').hidden = true; };
+
+    $('btnMakeCode').onclick = makeCode;
+    $('btnCopyCode').onclick = function () {
+      var v = $('inpCode').value;
+      if (!v) { toast('先点「生成口令」'); return; }
+      toast(copyText(v) ? '口令已复制' : '复制失败，请长按选择');
+    };
+    $('btnApplyCode').onclick = applyCode;
+
+    $('btnWxClose').onclick = function () {
+      $('wxTip').hidden = true;
+      document.body.className = '';
+    };
+    guardAssets();
 
     // 记住上次停留的页面状态（回到前台时刷新）
     document.addEventListener('visibilitychange', function () {
@@ -1091,9 +1110,293 @@
     });
   }
 
+
+  /* ========== 数据口令（跨设备同步） ========== */
+
+  function utf8ToBin(str) { return unescape(encodeURIComponent(str)); }
+  function binToUtf8(bin) { return decodeURIComponent(escape(bin)); }
+
+  function b64urlEncode(str) {
+    return btoa(utf8ToBin(str)).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+  }
+
+  function b64urlDecode(str) {
+    var t = String(str).replace(/-/g, '+').replace(/_/g, '/');
+    while (t.length % 4) t += '=';
+    return binToUtf8(atob(t));
+  }
+
+  function codePayload() {
+    return {
+      v: 1,
+      name: S.name,
+      exp: S.exp,
+      mood: S.mood,
+      hunger: S.hunger,
+      energy: S.energy,
+      streak: S.streak,
+      bornAt: S.bornAt,
+      chats: S.chats,
+      snacks: S.snacks,
+      logs: S.logs,
+      tokensEaten: S.tokensEaten,
+      achv: S.achv,
+      history: S.history.slice(-10),
+      settings: { model: S.settings.model, hd: S.settings.hd }
+    };
+  }
+
+  function makeCode() {
+    var box = $('codeMsg');
+    try {
+      var code = 'PET1:' + b64urlEncode(JSON.stringify(codePayload()));
+      $('inpCode').value = code;
+      box.hidden = false;
+      box.className = 'key-msg ok';
+      box.textContent = '口令已生成（' + code.length + ' 字符），复制到另一台设备导入即可。不含 API Key。';
+    } catch (e) {
+      box.hidden = false;
+      box.className = 'key-msg err';
+      box.textContent = '生成失败：' + (e && e.message ? e.message : '未知错误');
+    }
+  }
+
+  function applyCode() {
+    var box = $('codeMsg');
+    var raw = String($('inpCode').value || '').trim();
+    box.hidden = false;
+    if (!raw) {
+      box.className = 'key-msg err';
+      box.textContent = '先把口令粘进来。';
+      return;
+    }
+    try {
+      var body = raw.indexOf('PET1:') === 0 ? raw.slice(5) : raw;
+      var obj = JSON.parse(b64urlDecode(body));
+      if (!obj || typeof obj !== 'object' || typeof obj.exp !== 'number') throw new Error('不像本应用的口令');
+      var keepKey = S.settings.apiKey;
+      S = Object.assign(defaultState(), obj);
+      S.settings = Object.assign(defaultState().settings, obj.settings || {});
+      S.settings.apiKey = keepKey;
+      save();
+      render();
+      renderHistory();
+      autoState();
+      checkAchv();
+      box.className = 'key-msg ok';
+      box.textContent = '导入成功：' + S.name + ' · Lv.' + levelInfo(S.exp).lv + ' · 经验 ' + S.exp;
+      toast('宠物已搬过来');
+    } catch (e) {
+      box.className = 'key-msg err';
+      box.textContent = '口令无效：' + (e && e.message ? e.message : '解析失败');
+    }
+  }
+
+  /* ========== 体检（极端防呆） ========== */
+
+  function probeStorage() {
+    try {
+      var k = '__pet_probe__';
+      localStorage.setItem(k, '1');
+      var v = localStorage.getItem(k);
+      localStorage.removeItem(k);
+      return v === '1' ? { ok: true, msg: '可读写' } : { ok: false, msg: '写入无效（可能被降级为内存）' };
+    } catch (e) {
+      return { ok: false, msg: '被禁用（无痕/隐私模式）' };
+    }
+  }
+
+  function probeImage(url, timeoutMs) {
+    return new Promise(function (resolve) {
+      var done = false;
+      var im = new Image();
+      var timer = setTimeout(function () {
+        if (done) return;
+        done = true;
+        resolve({ ok: false, msg: '超时 ' + timeoutMs + 'ms，可能是网络慢或资源被拦' });
+      }, timeoutMs);
+      im.onload = function () {
+        if (done) return;
+        done = true;
+        clearTimeout(timer);
+        resolve({ ok: true, msg: im.naturalWidth + '×' + im.naturalHeight + ' 已加载' });
+      };
+      im.onerror = function () {
+        if (done) return;
+        done = true;
+        clearTimeout(timer);
+        resolve({ ok: false, msg: '加载失败（路径或网络问题）' });
+      };
+      im.src = url;
+    });
+  }
+
+  function probeVideo(url, timeoutMs) {
+    return new Promise(function (resolve) {
+      var v = document.createElement('video');
+      v.muted = true;
+      v.setAttribute('muted', '');
+      v.setAttribute('playsinline', '');
+      v.preload = 'auto';
+      var done = false;
+      var finish = function (r) {
+        if (done) return;
+        done = true;
+        clearTimeout(timer);
+        resolve(r);
+      };
+      var timer = setTimeout(function () { finish({ ok: false, msg: '加载超时 ' + timeoutMs + 'ms' }); }, timeoutMs);
+      v.onloadeddata = function () {
+        finish({ ok: true, msg: v.videoWidth + '×' + v.videoHeight + ' 可解码', video: v });
+      };
+      v.onerror = function () {
+        finish({ ok: false, msg: '解码失败，可能不支持 VP9/WebM' });
+      };
+      try { v.src = url; v.load(); } catch (e) { finish({ ok: false, msg: '无法创建 video' }); }
+    });
+  }
+
+  function probeAlpha(video) {
+    if (!video) return { ok: true, msg: '跳过（无视频）' };
+    try {
+      var c = document.createElement('canvas');
+      c.width = 12;
+      c.height = 12;
+      var ctx = c.getContext('2d');
+      ctx.drawImage(video, 0, 0, 12, 12);
+      var d = ctx.getImageData(0, 0, 12, 12).data;
+      var transparent = 0;
+      for (var i = 3; i < d.length; i += 4) if (d[i] < 250) transparent++;
+      if (transparent === 0) return { ok: false, msg: '整帧不透明，会显示成黑底（请关掉高清动作）' };
+      return { ok: true, msg: '透明像素 ' + transparent + '/144，透明通道正常' };
+    } catch (e) {
+      return { ok: true, msg: '无法采样（跨域或未解码），跳过' };
+    }
+  }
+
+  function probeApi() {
+    return new Promise(function (resolve) {
+      var done = false;
+      var ctl = null;
+      var finish = function (r) { if (done) return; done = true; resolve(r); };
+      try {
+        if (window.AbortController) ctl = new AbortController();
+      } catch (e) { ctl = null; }
+      var timer = setTimeout(function () {
+        if (ctl) { try { ctl.abort(); } catch (e) {} }
+        finish({ ok: false, msg: '请求超时 6s' });
+      }, 6000);
+      try {
+        fetch(API_BASE + '/models', { method: 'GET', signal: ctl ? ctl.signal : undefined })
+          .then(function (r) {
+            clearTimeout(timer);
+            finish({ ok: true, msg: '可达（HTTP ' + r.status + '，没带 Key 属正常）' });
+          })
+          .catch(function (e) {
+            clearTimeout(timer);
+            finish({ ok: false, msg: '连不上：' + (e && e.message ? e.message : '网络错误') });
+          });
+      } catch (e) {
+        clearTimeout(timer);
+        finish({ ok: false, msg: '浏览器不支持 fetch' });
+      }
+    });
+  }
+
+  var lastDiag = [];
+
+  function renderDiag(list) {
+    lastDiag = list;
+    var box = $('diagList');
+    var html = '';
+    for (var i = 0; i < list.length; i++) {
+      html += '<div class="diag-item ' + (list[i].ok ? 'ok' : 'bad') + '">' +
+        '<i class="dot"></i><div><span class="d-k">' + esc(list[i].name) + '</span>' +
+        '<span class="d-v">' + esc(list[i].msg) + '</span></div></div>';
+    }
+    box.innerHTML = html;
+  }
+
+  function runDiag() {
+    var list = [];
+    $('diag').hidden = false;
+    renderDiag([{ ok: true, msg: '正在检查…', name: '体检中' }]);
+
+    var st = probeStorage();
+    list.push({ name: '本地存储', ok: st.ok, msg: st.msg });
+    list.push({
+      name: '浏览器内核',
+      ok: true,
+      msg: (navigator.userAgent || '未知').slice(0, 90)
+    });
+
+    var gifUrl = assetUrl(ART['idle']);
+    var webmUrl = assetUrl(ART['idle'].replace(/\.gif$/, '.webm'));
+
+    probeImage(gifUrl, 6000).then(function (r) {
+      list.push({ name: '动作素材（GIF 回退）', ok: r.ok, msg: r.msg });
+      renderDiag(list);
+
+      return probeVideo(webmUrl, 6000).then(function (v) {
+        list.push({ name: '高清解码（VP9/WebM）', ok: v.ok, msg: v.msg });
+        if (v.ok) {
+          var a = probeAlpha(v.video);
+          list.push({ name: '透明通道', ok: a.ok, msg: a.msg });
+        }
+        renderDiag(list);
+        return probeApi();
+      });
+    }).then(function (r) {
+      list.push({ name: 'DeepSeek 接口', ok: r.ok, msg: r.msg });
+      var cur = S.settings.apiKey ? '已填写' : '未填写（演示模式）';
+      list.push({ name: 'API Key', ok: !!S.settings.apiKey, msg: cur });
+      list.push({ name: '存档', ok: true, msg: 'Lv.' + levelInfo(S.exp).lv + ' · 经验 ' + S.exp + ' · 会话 ' + S.chats });
+      renderDiag(list);
+    }).catch(function (e) {
+      list.push({ name: '体检异常', ok: false, msg: (e && e.message) || '未知' });
+      renderDiag(list);
+    });
+  }
+
+  function copyDiag() {
+    var lines = lastDiag.map(function (d) { return (d.ok ? '[OK] ' : '[FAIL] ') + d.name + ': ' + d.msg; });
+    lines.push('UA: ' + navigator.userAgent);
+    lines.push('URL: ' + location.href);
+    lines.push('时间: ' + new Date().toISOString());
+    var text = lines.join('\n');
+    if (copyText(text)) toast('诊断信息已复制');
+    else toast('复制失败，请手动选择文本');
+  }
+
+  var PLACEHOLDER = 'data:image/svg+xml,' + encodeURIComponent(
+    '<svg xmlns="http://www.w3.org/2000/svg" width="220" height="124" viewBox="0 0 220 124">' +
+    '<ellipse cx="110" cy="96" rx="46" ry="9" fill="rgba(0,0,0,0.25)"/>' +
+    '<circle cx="110" cy="58" r="34" fill="none" stroke="#8a8fb0" stroke-width="2" stroke-dasharray="5 5"/>' +
+    '<text x="110" y="64" font-size="22" text-anchor="middle" fill="#8a8fb0">?</text></svg>');
+
+  function guardAssets() {
+    var img = $('petImg');
+    if (!img) return;
+    var fired = false;
+    img.addEventListener('error', function () {
+      if (fired) return;
+      fired = true;
+      if (S.settings.hd !== false) return; // 高清失败会自动回退，不报错
+      img.setAttribute('src', PLACEHOLDER);
+      say('素材没加载出来…点右上角「?」做个检查。');
+      toast('素材加载失败，可以运行体检看看');
+    });
+  }
+
   /* ========== 启动 ========== */
 
   function boot() {
+    var ua = navigator.userAgent || '';
+    if (/MicroMessenger/i.test(ua)) {
+      $('wxTip').hidden = false;
+      document.body.className = 'wx-open';
+    }
+
     var had = load();
     if (had) settleOffline();
     render();

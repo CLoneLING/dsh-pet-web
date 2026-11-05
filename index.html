@@ -15,6 +15,11 @@
 </head>
 <body>
 
+<div id="wxTip" class="wx-tip" hidden>
+  <span>微信里可能加载不出素材，点右上角「···」→ 在浏览器中打开会更稳。</span>
+  <button id="btnWxClose" class="icon-btn" aria-label="关闭">✕</button>
+</div>
+
 <div class="sky" aria-hidden="true">
   <i class="star s1"></i><i class="star s2"></i><i class="star s3"></i>
   <i class="star s4"></i><i class="star s5"></i><i class="star s6"></i>
@@ -145,6 +150,19 @@
         <button id="btnExport" class="btn ghost small">导出存档</button>
         <button id="btnImport" class="btn ghost small">导入存档</button>
         <input id="inpImport" type="file" accept=".json,application/json" hidden>
+        <button id="btnDiagOpen" class="btn ghost small">运行体检</button>
+      </div>
+
+      <div class="field">
+        <span class="field-k">数据口令（跨设备一键同步）</span>
+        <span class="field-hint">生成一串口令，复制到另一台设备的「导入」框里，宠物就搬过去了。口令不含 API Key。</span>
+        <textarea id="inpCode" class="code-area" rows="3" placeholder="点「生成口令」得到一串字符；或把别的设备的口令粘进来"></textarea>
+        <div class="row">
+          <button id="btnMakeCode" class="btn ghost small">生成口令</button>
+          <button id="btnCopyCode" class="btn ghost small">复制</button>
+          <button id="btnApplyCode" class="btn primary small">导入口令</button>
+        </div>
+        <div id="codeMsg" class="key-msg" hidden></div>
       </div>
 
       <div class="about">
@@ -189,6 +207,24 @@
   <div class="fh-actions">
     <button id="btnFloatOpen" class="btn small">再打开一次官网</button>
     <button id="btnFloatDone" class="btn primary small">我复制好了</button>
+  </div>
+</div>
+
+<!-- 体检 -->
+<div id="diag" class="modal" hidden>
+  <div class="modal-card">
+    <div class="modal-head">
+      <span>体检结果</span>
+      <button id="btnDiagClose" class="icon-btn" aria-label="关闭">✕</button>
+    </div>
+    <div class="modal-body">
+      <div id="diagList" class="diag-list"></div>
+      <div class="row">
+        <button id="btnDiagRerun" class="btn ghost small">重新体检</button>
+        <button id="btnDiagCopy" class="btn ghost small">复制诊断信息</button>
+      </div>
+      <p class="field-hint">素材那一项失败，通常是网络或浏览器把静态资源拦了：换网络、换浏览器，或直接用「数据口令」把宠物搬到别的设备。</p>
+    </div>
   </div>
 </div>
 

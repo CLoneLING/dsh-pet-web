@@ -78,6 +78,23 @@ $('btnSettingsClose').click();
 await sleep(60);
 assert($('settings').hidden === true, '设置关闭');
 
+/* ---------- 数据口令往返 ---------- */
+$('settings').hidden = false;
+$('btnMakeCode').click();
+const code = $('inpCode').value;
+assert(code.indexOf('PET1:') === 0, '生成口令: ' + code.slice(0, 12) + '… (' + code.length + ' 字符)');
+
+const before = JSON.parse(window.localStorage.getItem('dshpet.save.v1') || '{}').exp;
+$('inpCode').value = 'PET1:broken';
+$('btnApplyCode').click();
+assert($('codeMsg').className.indexOf('err') >= 0, '坏口令被拒绝');
+
+$('inpCode').value = code;
+$('btnApplyCode').click();
+const after = JSON.parse(window.localStorage.getItem('dshpet.save.v1') || '{}');
+assert($('codeMsg').className.indexOf('ok') >= 0, '口令导入成功');
+assert(after.exp === before || after.exp > 0, '导入后数据可用: exp=' + after.exp);
+
 const level = $('lvBadge').textContent;
 assert(/Lv\.\d+/.test(level), '等级显示: ' + level);
 
