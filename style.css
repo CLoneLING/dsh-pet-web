@@ -1176,3 +1176,19 @@ body.wx-open #app { padding-top: 46px; }
 }
 
 .stage { overflow: hidden; }
+
+/* ---------- 尺寸回调：比最初大一点，别糊 ---------- */
+.pet-wrap {
+  width: 30vw;
+  max-width: 132px;
+}
+.pet-wrap .pet { width: 294%; }
+.chatbar { height: 28vh; }
+
+@media (max-height: 680px) {
+  .pet-wrap { width: 26vw; max-width: 110px; }
+  .chatbar { height: 26vh; }
+}
+
+/* 高清层不要再叠对比度，避免发脏 */
+.pet-wrap .pet { filter: none; }
