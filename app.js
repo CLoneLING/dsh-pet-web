@@ -32,6 +32,28 @@
     'dance': 'youya-nvpuwu.gif'
   };
 
+  // 每个动作的真实时长（由 GIF 帧延时实测），用于"播完再切"
+  var DURATION = {
+    'idle': 10000,
+    'click.happy': 10000,
+    'click.shy': 10000,
+    'click.angry': 10000,
+    'work.busy': 10000,
+    'work.think': 10000,
+    'work.tired': 4900,
+    'work.done': 10000,
+    'sleep.enter': 10000,
+    'sleep.loop': 10000,
+    'sleep.wake': 10000,
+    'eat.token': 10000,
+    'murmur.idle': 10000,
+    'drag.suspend': 10000,
+    'yawn': 10000,
+    'look': 10000,
+    'juggle': 10000,
+    'dance': 10000
+  };
+
   var LINK = {
     signIn: 'https://platform.deepseek.com/sign_in',
     topUp: 'https://platform.deepseek.com/top_up',
@@ -333,12 +355,13 @@
 
     if (stateTimer) { clearTimeout(stateTimer); stateTimer = null; }
     if (holdMs && holdMs > 0) {
+      var wait = Math.max(holdMs, (DURATION[key] || 0) + 150);
       stateLock = true;
       stateTimer = setTimeout(function () {
         stateLock = false;
         stateTimer = null;
         autoState();
-      }, holdMs);
+      }, wait);
     } else if (changed) {
       stateLock = false;
     }
@@ -373,7 +396,7 @@
 
   function scheduleAmbient() {
     if (ambientTimer) clearTimeout(ambientTimer);
-    var wait = 6000 + Math.random() * 12000;
+    var wait = 10000 + Math.random() * 14000;
     ambientTimer = setTimeout(function () {
       ambientTick();
       scheduleAmbient();
@@ -585,6 +608,65 @@
     excited: 'work.done', eat: 'eat.token'
   };
 
+  // 有些浏览器能解码 WebM 但画不出透明层（或全黑）；这里做一次真实取样，失败自动退回 GIF
+  function verifyHd() {
+    if (!S.settings.hd) return;
+    var v = document.createElement('video');
+    v.muted = true;
+    v.setAttribute('muted', '');
+    v.setAttribute('playsinline', '');
+    v.preload = 'auto';
+    var done = false;
+    var timer = null;
+
+    function finish(ok, why) {
+      if (done) return;
+      done = true;
+      if (timer) clearTimeout(timer);
+      if (ok) return;
+      S.settings.hd = false;
+      brokenHD[curState] = true;
+      save();
+      if ($('inpHd')) $('inpHd').checked = false;
+      render();
+      setState(curState, 0, true);
+      toast('这个浏览器放不出透明视频，已切回 GIF（' + why + '）');
+    }
+
+    timer = setTimeout(function () { finish(false, '加载超时'); }, 7000);
+    v.onerror = function () { finish(false, '解码失败'); };
+    v.onloadeddata = function () {
+      try {
+        v.currentTime = Math.min(0.4, (v.duration || 1) / 2);
+      } catch (e) { finish(false, '无法定位帧'); }
+    };
+    v.onseeked = function () {
+      try {
+        var c = document.createElement('canvas');
+        c.width = 16;
+        c.height = 16;
+        var ctx = c.getContext('2d');
+        ctx.drawImage(v, 0, 0, 16, 16);
+        var d = ctx.getImageData(0, 0, 16, 16).data;
+        var transparent = 0;
+        var lit = 0;
+        for (var i = 0; i < d.length; i += 4) {
+          if (d[i + 3] < 250) transparent++;
+          if (d[i] + d[i + 1] + d[i + 2] > 40) lit++;
+        }
+        if (transparent === 0 && lit === 0) finish(false, '画面全空');
+        else if (transparent === 0) finish(false, '没有透明通道');
+        else finish(true);
+      } catch (e) {
+        finish(true); // 采样不到就不打扰用户
+      }
+    };
+
+    try {
+      v.src = assetUrl(ART['idle'].replace(/\.gif$/, '.webm'));
+    } catch (e) { finish(false, '无法加载'); }
+  }
+
   function extractMood(text) {
     var m = /\[\[\s*mood\s*:\s*([a-z]+)\s*\]\]/i.exec(String(text));
     var clean = String(text).replace(/\[\[\s*mood\s*:\s*[a-z]+\s*\]\]/gi, '').trim();
@@ -689,7 +771,7 @@
     void w.offsetWidth;
     w.classList.add('react');
     setTimeout(function () { w.classList.remove('react'); }, 460);
-    setState(st, 2600);
+    setState(st, 0, true);
   }
 
   // 小特效：心心 / 星星 / Zzz
@@ -948,6 +1030,7 @@
   }
 
   function closeSettings() {
+    var wasHd = S.settings.hd !== false;
     $('settings').hidden = true;
     S.name = ($('inpName').value || '小女仆').trim().slice(0, 12) || '小女仆';
     S.settings.apiKey = ($('inpKey').value || '').trim();
@@ -956,6 +1039,7 @@
     if ($('inpWander')) S.settings.wander = $('inpWander').checked;
     if ($('inpFollow')) S.settings.follow = $('inpFollow').checked;
     startWander();
+    if (!wasHd && S.settings.hd) setTimeout(verifyHd, 120);
     setState(curState);
     render();
     save();
@@ -1606,6 +1690,7 @@
     $('diag').hidden = false;
     renderDiag([{ ok: true, msg: '正在检查…', name: '体检中' }]);
 
+    list.push({ name: '页面版本', ok: true, msg: 'v0.2.3 · ' + location.href });
     var st = probeStorage();
     list.push({ name: '本地存储', ok: st.ok, msg: st.msg });
     list.push({
@@ -1764,6 +1849,7 @@
     scheduleAmbient();
     setTimeout(warmup, 1500);
     setTimeout(function () { refreshBalance(true); }, 1200);
+    if (S.settings.hd) setTimeout(verifyHd, 900);
   }
 
   if (document.readyState === 'loading') {
