@@ -1,6 +1,6 @@
 {
   "name": "dsh-pet-web",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "蓝毛小女仆 · 电子宠物 —— 纯前端、零后端的网页宠物，自带 API Key 引导，会聊天、会长大",
   "author": "YuMoo <https://github.com/CLoneLING>",
   "license": "MIT",

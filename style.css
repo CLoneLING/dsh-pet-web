@@ -1237,3 +1237,6 @@ a.icon-btn {
   color: var(--text);
 }
 .icon-btn svg { display: block; }
+
+/* 构建标记 */
+#buildTag { color: var(--blue); opacity: 0.8; }
