@@ -783,3 +783,26 @@ code {
   .pet-wrap { animation: none; }
   .star { animation: none; }
 }
+
+/* ---------- 页脚说明 / 许可 ---------- */
+.foot-note {
+  margin: 8px 0 0;
+  font-size: 10px;
+  line-height: 1.7;
+  color: rgba(150, 156, 184, 0.7);
+}
+
+.lic { margin-top: 10px; }
+.lic summary {
+  font-size: 11px;
+  color: var(--dim);
+  cursor: pointer;
+  outline: none;
+  padding: 4px 0;
+}
+.lic p {
+  margin: 6px 0;
+  font-size: 10px;
+  line-height: 1.6;
+  color: rgba(150, 156, 184, 0.75);
+}

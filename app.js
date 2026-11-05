@@ -243,11 +243,24 @@
     return GIF + file;
   }
 
+  // 预热两三个最常用的动作，避免第一次切换时闪一下白
+  function warmup() {
+    try {
+      var conn = navigator.connection;
+      if (conn && conn.saveData) return;
+    } catch (e) { /* 老浏览器没有 connection */ }
+    var list = ['click.happy', 'sleep.loop', 'eat.token'];
+    for (var i = 0; i < list.length; i++) {
+      if (!ART[list[i]]) continue;
+      var im = new Image();
+      im.src = assetUrl(ART[list[i]]);
+    }
+  }
+
   function setState(name, holdMs) {
     var file = ART[name] || ART['idle'];
     var img = $('petImg');
-    var src = assetUrl(file);
-    if (img.getAttribute('src') !== src) {
+    var src = assetUrl(file);    if (img.getAttribute('src') !== src) {
       img.setAttribute('src', src);
     }
     if (stateTimer) { clearTimeout(stateTimer); stateTimer = null; }
@@ -1040,6 +1053,8 @@
 
     checkAchv();
     save();
+
+    setTimeout(warmup, 1500);
   }
 
   if (document.readyState === 'loading') {

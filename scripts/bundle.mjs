@@ -29,13 +29,13 @@ await fs.mkdir(DIST, { recursive: true });
 /* ---------- 1. 目录版 ---------- */
 await fs.writeFile(path.join(DIST, 'index.html'), baseHtml, 'utf8');
 await fs.cp(path.join(ROOT, 'assets'), path.join(DIST, 'assets'), { recursive: true });
-for (const extra of ['THIRD-PARTY-NOTICES.md', 'README.md', 'DEPLOY.md']) {
+for (const extra of ['LICENSE', 'THIRD-PARTY-NOTICES.md', 'README.md', 'DEPLOY.md']) {
   try { await fs.copyFile(path.join(ROOT, extra), path.join(DIST, extra)); } catch (e) { /* 可选 */ }
 }
 
 let zipNote = '(未找到 zip 命令，跳过压缩包)';
 try {
-  execFileSync('zip', ['-qr', 'pet.zip', 'index.html', 'assets', 'THIRD-PARTY-NOTICES.md', 'README.md', 'DEPLOY.md'], {
+  execFileSync('zip', ['-qr', 'pet.zip', 'index.html', 'assets', 'LICENSE', 'THIRD-PARTY-NOTICES.md', 'README.md', 'DEPLOY.md'], {
     cwd: DIST, stdio: 'ignore'
   });
   const z = await fs.stat(path.join(DIST, 'pet.zip'));
