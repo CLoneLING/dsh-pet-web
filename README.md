@@ -41,8 +41,8 @@ npx serve .
 index.html              页面骨架（含引导/设置/聊天面板）
 style.css               样式
 app.js                  全部逻辑（状态机、聊天、引导、日志导入）
-assets/gifs/            14 个透明 GIF（220×124，回退用）
-assets/webm/            14 个高清 WebM（640×360，VP9+Alpha，默认播放）
+assets/gifs/            14 个透明 GIF（220×124，默认播放）
+assets/webm/            18 个高清 WebM（640×360，VP9+Alpha，需在设置里开启）
 sources.json            素材清单：每个状态的 sha256、帧数、CDN 回退顺序
 scripts/fetch-assets.mjs  从上游仓库重新拉素材
 scripts/bundle.mjs      打包成目录版 / 单文件版

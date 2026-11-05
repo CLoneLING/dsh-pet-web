@@ -127,7 +127,7 @@
 
   function defaultState() {
     return {
-      v: 1,
+      v: 2,
       name: '小女仆',
       exp: 0,
       mood: 72,
@@ -143,7 +143,7 @@
       tokensEaten: 0,
       achv: [],
       history: [],
-      settings: { apiKey: '', model: 'deepseek-chat', hd: true, wander: false, follow: false }
+      settings: { apiKey: '', model: 'deepseek-chat', hd: false, wander: false, follow: false }
     };
   }
 
@@ -166,9 +166,14 @@
       var o = JSON.parse(raw);
       if (!o || typeof o !== 'object') return false;
       S = Object.assign(defaultState(), o);
-      S.settings = Object.assign({ apiKey: '', model: 'deepseek-chat', hd: true, wander: false, follow: false }, o.settings || {});
+      S.settings = Object.assign({ apiKey: '', model: 'deepseek-chat', hd: false, wander: false, follow: false }, o.settings || {});
       if (!S.history || !S.history.length) S.history = [];
       if (!S.achv) S.achv = [];
+      // v1 -> v2：高清动作改为默认关闭，老存档也跟随一次
+      if (!o.v || o.v < 2) {
+        S.settings.hd = false;
+        S.v = 2;
+      }
       return true;
     } catch (e) { return false; }
   }
@@ -1341,7 +1346,7 @@
 
   function codePayload() {
     return {
-      v: 1,
+      v: 2,
       name: S.name,
       exp: S.exp,
       mood: S.mood,
