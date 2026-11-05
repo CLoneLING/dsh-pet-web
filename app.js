@@ -625,11 +625,13 @@
       if (timer) clearTimeout(timer);
       if (ok) return;
       S.settings.hd = false;
+      S.hdOk = false;
       brokenHD[curState] = true;
       save();
       if ($('inpHd')) $('inpHd').checked = false;
       render();
       setState(curState, 0, true);
+      applyHdUi();
       toast('这个浏览器放不出透明视频，已切回 GIF（' + why + '）');
     }
 
@@ -665,6 +667,37 @@
     try {
       v.src = assetUrl(ART['idle'].replace(/\.gif$/, '.webm'));
     } catch (e) { finish(false, '无法加载'); }
+  }
+
+  function applyHdUi() {
+    var row = $('hdRow');
+    if (!row) return;
+    var ok = S.hdOk !== false;
+    row.hidden = !ok;
+    if (!ok) {
+      var note = $('hdNote');
+      if (note) note.textContent = '当前浏览器不支持透明视频，固定使用 GIF';
+    }
+  }
+
+  function probeHdSupport() {
+    if (S.hdOk === true) return;
+    var v = document.createElement('video');
+    v.muted = true;
+    v.setAttribute('muted', '');
+    v.preload = 'auto';
+    var done = false;
+    function finish(ok) {
+      if (done) return;
+      done = true;
+      S.hdOk = ok;
+      save();
+      applyHdUi();
+    }
+    setTimeout(function () { finish(false); }, 5000);
+    v.onloadeddata = function () { finish(true); };
+    v.onerror = function () { finish(false); };
+    try { v.src = assetUrl(ART['idle'].replace(/\.gif$/, '.webm')); } catch (e) { finish(false); }
   }
 
   function extractMood(text) {
@@ -1022,6 +1055,8 @@
     $('inpKey').value = S.settings.apiKey;
     $('inpModel').value = S.settings.model || 'deepseek-chat';
     $('inpHd').checked = S.settings.hd !== false;
+    applyHdUi();
+    probeHdSupport();
     if ($('inpWander')) $('inpWander').checked = !!S.settings.wander;
     if ($('inpFollow')) $('inpFollow').checked = !!S.settings.follow;
     $('keyMsg').hidden = true;

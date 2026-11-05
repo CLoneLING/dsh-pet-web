@@ -13,7 +13,7 @@
 <link rel="canonical" href="https://dsh-pet-web.pages.dev/">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ctext x='32' y='50' font-size='46' text-anchor='middle'%3E%F0%9F%90%BE%3C/text%3E%3C/svg%3E">
 <title>蓝毛小女仆 · 电子宠物</title>
-<link rel="stylesheet" href="style.css?v=025">
+<link rel="stylesheet" href="style.css?v=026">
 </head>
 <body>
 
@@ -95,7 +95,7 @@
   <footer class="foot">
     <span id="keyState" class="key-state dim">未配置 API Key（演示模式）</span>
     <span id="balanceChip" class="balance" hidden></span>
-    <p class="foot-note">By <a href="https://github.com/CLoneLING/dsh-pet-web" target="_blank" rel="noopener">YuMoo</a> · <span id="buildTag">v0.2.3</span> · 对话由 AI 生成，仅供娱乐。</p>
+    <p class="foot-note">By <a href="https://github.com/CLoneLING/dsh-pet-web" target="_blank" rel="noopener">YuMoo</a> · <span id="buildTag">v0.2.4</span> · 对话由 AI 生成，仅供娱乐。</p>
   </footer>
 </div>
 
@@ -133,9 +133,9 @@
         </select>
       </label>
 
-      <label class="check-row">
+      <label class="check-row" id="hdRow">
         <input id="inpHd" type="checkbox">
-        <span>高清动作<em>（WebM，更清晰；默认关闭，画面正常可打开）</em></span>
+        <span>高清动作<em id="hdNote">（WebM，更清晰；默认关闭，画面正常可打开）</em></span>
       </label>
 
       <label class="check-row">
@@ -182,7 +182,7 @@
       <div class="about">
         <p>作者 <b>YuMoo</b> · 开源在 <a href="https://github.com/CLoneLING/dsh-pet-web" target="_blank" rel="noopener">GitHub</a> · 站点 <a href="https://dsh-pet-web.pages.dev/" target="_blank" rel="noopener">dsh-pet-web.pages.dev</a></p>
         <p>宠物形象与动作素材来自 <a href="https://github.com/PC2005-cloud/dsh-pet" target="_blank" rel="noopener">PC2005-cloud/dsh-pet</a>（MIT）。本页面不含任何后端，所有数据都在你的浏览器里。</p>
-        <p class="dim">版本 0.2.3 · 纯前端 · 无账号 · 无服务器</p>
+        <p class="dim">版本 0.2.4 · 纯前端 · 无账号 · 无服务器</p>
 
         <details class="lic">
           <summary>开源许可（MIT）</summary>
@@ -245,6 +245,6 @@
 
 <div id="toast" class="toast" hidden></div>
 
-<script src="app.js?v=025"></script>
+<script src="app.js?v=026"></script>
 </body>
 </html>
