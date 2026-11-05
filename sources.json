@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-11-05T11:35:06.984Z",
+  "generatedAt": "2026-11-05T14:46:19.342Z",
   "cdnOrder": [
     "local",
     "npmmirror",
@@ -119,6 +119,34 @@
           "file": "beishubiao-tuozhuai-xuankong-fankui.gif",
           "bytes": 654762,
           "sha256": "0bb3db0356490ae264d5278b977c432099b8d5e253e59bcd69e1fee313230caf",
+          "frames": 120,
+          "transparentFrames": 120
+        },
+        "yawn": {
+          "file": "haqian-liantian.gif",
+          "bytes": 632678,
+          "sha256": "904e76e90af46ca671597f6c54a11f04f21a861db54ef7444ffa3f2708f44f62",
+          "frames": 121,
+          "transparentFrames": 120
+        },
+        "look": {
+          "file": "dongzhangxiwang.gif",
+          "bytes": 622863,
+          "sha256": "b0488b4eb7068526191abcbda3e4e5453931b672a898ee953489e9d0b2cd3c45",
+          "frames": 120,
+          "transparentFrames": 120
+        },
+        "juggle": {
+          "file": "sanqiu-paojie.gif",
+          "bytes": 632764,
+          "sha256": "7d419e7a1fd2cb158329807ea47543a60c571e9e043bceab3f66a8a99eb71535",
+          "frames": 120,
+          "transparentFrames": 120
+        },
+        "dance": {
+          "file": "youya-nvpuwu.gif",
+          "bytes": 610270,
+          "sha256": "8d0a71cf094c7cb074058bf9ba1db86c2b705dda8c8f6629d3594173a8f90607",
           "frames": 120,
           "transparentFrames": 120
         }

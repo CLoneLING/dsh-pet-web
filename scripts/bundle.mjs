@@ -43,7 +43,7 @@ try {
 } catch (e) { /* 保持提示 */ }
 
 const idxStat = await fs.stat(path.join(DIST, 'index.html'));
-console.log('目录版: dist/index.html  ' + (idxStat.size / 1024).toFixed(1) + ' KB + dist/assets/gifs/ (14 GIF)');
+console.log('目录版: dist/index.html  ' + (idxStat.size / 1024).toFixed(1) + ' KB + dist/assets/gifs/ (' + (await fs.readdir(path.join(ROOT, 'assets', 'gifs'))).filter(f => f.endsWith('.gif')).length + ' GIF)');
 console.log('压缩包: ' + zipNote);
 
 /* ---------- 2. 单文件版 ---------- */

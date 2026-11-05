@@ -37,7 +37,7 @@ SOFTWARE.
 
 **高清动作（14 个 WebM，640×360，VP9 + Alpha，共 5.6 MB）** —— 与下方 GIF 同源、同名，用于高清播放；
 
-**兼容动作（14 个 GIF，220×124，每帧透明，共 7.90 MB）** —— 老浏览器 / 关闭高清时的回退。
+**兼容动作（18 个 GIF，220×124，每帧透明，共 11 MB）** —— 老浏览器 / 关闭高清时的回退。
 
 
 | 状态键 | 文件 | 帧数 | 透明帧 |
@@ -56,6 +56,11 @@ SOFTWARE.
 | `eat.token` | chi-token.gif | 120 | 120 |
 | `murmur.idle` | suisuinian-cazhuo-suisuinian.gif | 120 | 120 |
 | `drag.suspend` | beishubiao-tuozhuai-xuankong-fankui.gif | 120 | 120 |
+
+| `yawn` | haqian-liantian.gif | 121 | 120 |
+| `look` | dongzhangxiwang.gif | 120 | 120 |
+| `juggle` | sanqiu-paojie.gif | 120 | 120 |
+| `dance` | youya-nvpuwu.gif | 120 | 120 |
 
 > 注：上游 `assets/memes/` 中的梗图属于社区二创、且可能包含第三方素材，**未收录**，避免二次分发风险。
 

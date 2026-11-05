@@ -25,7 +25,11 @@
     'sleep.wake': 'shuijiao-qilai.gif',
     'eat.token': 'chi-token.gif',
     'murmur.idle': 'suisuinian-cazhuo-suisuinian.gif',
-    'drag.suspend': 'beishubiao-tuozhuai-xuankong-fankui.gif'
+    'drag.suspend': 'beishubiao-tuozhuai-xuankong-fankui.gif',
+    'yawn': 'haqian-liantian.gif',
+    'look': 'dongzhangxiwang.gif',
+    'juggle': 'sanqiu-paojie.gif',
+    'dance': 'youya-nvpuwu.gif'
   };
 
   var LINK = {
@@ -275,13 +279,6 @@
   var curState = 'idle';
   var brokenHD = {};
 
-  var HD_ONLY = {
-    'yawn':   { webm: 'haqian-liantian.webm', fallback: 'work.tired' },
-    'look':   { webm: 'dongzhangxiwang.webm', fallback: 'idle' },
-    'juggle': { webm: 'sanqiu-paojie.webm',   fallback: 'click.happy' },
-    'dance':  { webm: 'youya-nvpuwu.webm',    fallback: 'click.happy' }
-  };
-
   function canPlayWebm() {
     if (typeof canPlayWebm.cache === 'undefined') {
       try {
@@ -298,16 +295,12 @@
     if (ART[name]) {
       return { gif: ART[name], webm: ART[name].replace(/\.gif$/, '.webm') };
     }
-    var hd = HD_ONLY[name];
-    if (hd) {
-      return { gif: ART[hd.fallback] || ART['idle'], webm: hd.webm };
-    }
     return { gif: ART['idle'], webm: 'daiji-huxi-xiuxian.webm' };
   }
 
   // 同一个动作不重设 src -> 不会重播；正在播放的动作也不会被自动行为打断
   function setState(name, holdMs, force) {
-    var key = (ART[name] || HD_ONLY[name]) ? name : 'idle';
+    var key = ART[name] ? name : 'idle';
     if (stateLock && !force) return;
 
     var art = resolveArt(key);
@@ -354,13 +347,22 @@
   function autoState() {
     if (stateLock) return;
     var h = new Date().getHours();
-    if (S.energy < 22 || h >= 23 || h < 6) {
-      setState('sleep.loop');
-    } else if (S.hunger < 25) {
-      setState('murmur.idle');
-    } else {
-      setState('idle');
+    var sleepy = (S.energy < 22 || h >= 23 || h < 6);
+
+    if (sleepy) {
+      if (curState === 'sleep.loop') return;
+      if (curState === 'sleep.enter') { setState('sleep.loop', 0, true); return; }
+      setState('sleep.enter', 1700);          // 先躺下
+      return;
     }
+
+    if (curState === 'sleep.loop' || curState === 'sleep.enter') {
+      setState('sleep.wake', 1500);            // 先爬起来
+      return;
+    }
+    if (curState === 'sleep.wake') { setState('idle', 0, true); return; }
+    if (S.hunger < 25) { setState('murmur.idle'); return; }
+    setState('idle');
   }
 
   /* ---- 随机行为：没在做事的时候自己找乐子 ---- */

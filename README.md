@@ -71,7 +71,7 @@ node scripts/bundle.mjs        # 产出 dist/pet-standalone.html（约 13 MB，�
 index.html              页面骨架（引导 / 设置 / 内嵌聊天）
 style.css               样式
 app.js                  全部逻辑（状态机、聊天、引导、日志导入、体检）
-assets/gifs/            14 个透明 GIF（220×124，默认播放）
+assets/gifs/            18 个透明 GIF（220×124，默认播放）
 assets/webm/            18 个高清 WebM（640×360，VP9+Alpha，设置里可开）
 sources.json            素材清单：sha256、帧数、CDN 回退顺序
 scripts/fetch-assets.mjs  从上游仓库重新拉素材
