@@ -1,0 +1,129 @@
+{
+  "version": 1,
+  "generatedAt": "2026-11-05T11:35:06.984Z",
+  "cdnOrder": [
+    "local",
+    "npmmirror",
+    "jsdelivr",
+    "raw"
+  ],
+  "cdnBases": {
+    "local": "assets/gifs/",
+    "jsdelivr": "https://cdn.jsdelivr.net/gh/PC2005-cloud/dsh-pet@main/dsh-pet/assets/preview/",
+    "raw": "https://raw.githubusercontent.com/PC2005-cloud/dsh-pet/main/dsh-pet/assets/preview/",
+    "npmmirror": "https://cdn.npmmirror.com/packages/dsh-pet-assets/1.0.0/gifs/"
+  },
+  "sources": [
+    {
+      "id": "pc2005",
+      "name": "dsh-pet 透明动作库",
+      "kind": "gif-states",
+      "repo": "PC2005-cloud/dsh-pet",
+      "ref": "main",
+      "license": "MIT",
+      "author": "PC2005-cloud",
+      "upstreamPath": "dsh-pet/assets/preview",
+      "states": {
+        "idle": {
+          "file": "daiji-huxi-xiuxian.gif",
+          "bytes": 630669,
+          "sha256": "ab23562dafea476fd136909e4405b90150c7e9434a9e9d2ed4cb73d9f33ddce9",
+          "frames": 120,
+          "transparentFrames": 120
+        },
+        "click.happy": {
+          "file": "dianji-huiying-kaixin-yuedong.gif",
+          "bytes": 625946,
+          "sha256": "904f9cc6e24daed9e313cd7ae1d1cac5b921c4300cd52e82ba6a9db0c718c27f",
+          "frames": 120,
+          "transparentFrames": 120
+        },
+        "click.shy": {
+          "file": "dianji-huiying-haixiu-jingya.gif",
+          "bytes": 637081,
+          "sha256": "3dfe3334a00ff8022077af5116a23d30305f4fbd34460bd5ac0684171d40c97e",
+          "frames": 120,
+          "transparentFrames": 120
+        },
+        "click.angry": {
+          "file": "dianji-huiying-aojiao-shengqi-ceshen-zhanshi.gif",
+          "bytes": 562573,
+          "sha256": "f81f98400e441ff0010ac72314a43ba96806ec09332e667a6a3758042c0a4087",
+          "frames": 120,
+          "transparentFrames": 120
+        },
+        "work.busy": {
+          "file": "gongzuozhuangtai-manglu-dianan.gif",
+          "bytes": 627629,
+          "sha256": "bab6cb7eff739bac96e8e593b34b842270a5252ae631c0912bb23ab47ebb9a47",
+          "frames": 120,
+          "transparentFrames": 120
+        },
+        "work.think": {
+          "file": "gongzuozhuangtai-sikao-maopao.gif",
+          "bytes": 636712,
+          "sha256": "9d52ae5f84c4fa7e0249619b47b556ae26ff81168b5e712d8b5113645cc95546",
+          "frames": 120,
+          "transparentFrames": 120
+        },
+        "work.tired": {
+          "file": "gongzuozhuangtai-chuitou-tanqi-maohan.gif",
+          "bytes": 312719,
+          "sha256": "10d59731c0ad8ab077d7974edef033827b4573e3512e06ebc1413806522f0304",
+          "frames": 59,
+          "transparentFrames": 59
+        },
+        "work.done": {
+          "file": "gongzuozhuangtai-queyue-qingzhu.gif",
+          "bytes": 633926,
+          "sha256": "59232775c660091beb5cbe8d8d3381ac04515291caf25ce93313c0fe85989173",
+          "frames": 120,
+          "transparentFrames": 120
+        },
+        "sleep.enter": {
+          "file": "shuijiao-kaishi.gif",
+          "bytes": 555763,
+          "sha256": "4c83204e6b16dd7213f581b36ae5025dab0f834f3f3e945f9de29496afb24507",
+          "frames": 120,
+          "transparentFrames": 120
+        },
+        "sleep.loop": {
+          "file": "shuijiao-xunhuan.gif",
+          "bytes": 533116,
+          "sha256": "41740732668409e3c629ad881074722cecdd4f6da567bbbbac6903e5e8ac7554",
+          "frames": 120,
+          "transparentFrames": 120
+        },
+        "sleep.wake": {
+          "file": "shuijiao-qilai.gif",
+          "bytes": 589135,
+          "sha256": "49a53c07595ec6b04156030396f1efdcda7a2eed627d26007ea42686fdbf2206",
+          "frames": 120,
+          "transparentFrames": 120
+        },
+        "eat.token": {
+          "file": "chi-token.gif",
+          "bytes": 670566,
+          "sha256": "93354fef7853db63d3ec59d404bfa6277554cd2f25e22be46b776ce0080a7a66",
+          "frames": 120,
+          "transparentFrames": 120
+        },
+        "murmur.idle": {
+          "file": "suisuinian-cazhuo-suisuinian.gif",
+          "bytes": 612374,
+          "sha256": "ead21ada195d860e9d2cab1f763a253522044bd99641e34bbf6c3290511ea674",
+          "frames": 120,
+          "transparentFrames": 120
+        },
+        "drag.suspend": {
+          "file": "beishubiao-tuozhuai-xuankong-fankui.gif",
+          "bytes": 654762,
+          "sha256": "0bb3db0356490ae264d5278b977c432099b8d5e253e59bcd69e1fee313230caf",
+          "frames": 120,
+          "transparentFrames": 120
+        }
+      }
+    }
+  ],
+  "cdnNote": "jsdelivr / raw.githubusercontent 在部分国内网络会被重置（实测）；local 永远优先，npmmirror 需先把素材发布成 npm 包"
+}

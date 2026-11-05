@@ -1,0 +1,14 @@
+dist/
+node_modules/
+package-lock.json
+*.log
+.DS_Store
+
+# 与本项目无关的本地文件（不属于仓库内容）
+/extracted/
+/sample.zip
+/*.exe.zip
+/pyinstxtractor*.py
+/qtcore.sig.der
+/.meta.ndjson
+/.tool-temp.ndjson

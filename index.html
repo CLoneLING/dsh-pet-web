@@ -1,0 +1,177 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#171827">
+<meta name="description" content="一只住在你手机里的小宠物。填上自己的 API Key 就能聊天、陪你工作、慢慢长大。">
+<title>蓝毛小女仆 · 电子宠物</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="sky" aria-hidden="true">
+  <i class="star s1"></i><i class="star s2"></i><i class="star s3"></i>
+  <i class="star s4"></i><i class="star s5"></i><i class="star s6"></i>
+  <i class="moon"></i>
+</div>
+
+<div id="app">
+
+  <header class="topbar">
+    <div class="who">
+      <span id="petName" class="name">小女仆</span>
+      <span id="lvBadge" class="lv">Lv.1</span>
+      <span id="streakBadge" class="lv ghost" hidden>连续 1 天</span>
+    </div>
+    <div class="topbar-btns">
+      <button id="btnOnboarding" class="icon-btn" aria-label="使用引导" title="使用引导">?</button>
+      <button id="btnSettings" class="icon-btn" aria-label="设置" title="设置">⚙</button>
+    </div>
+  </header>
+
+  <main class="stage">
+    <div id="bubble" class="bubble" hidden><span id="bubbleText"></span></div>
+
+    <button id="petWrap" class="pet-wrap" aria-label="摸摸宠物">
+      <img id="petImg" class="pet" alt="宠物" src="assets/gifs/daiji-huxi-xiuxian.gif" draggable="false">
+      <span class="pet-shadow" aria-hidden="true"></span>
+    </button>
+
+    <div class="exp-wrap" title="经验">
+      <div id="expFill" class="exp-fill"></div>
+      <span id="expText" class="exp-text">0 / 100</span>
+    </div>
+  </main>
+
+  <section class="stats" aria-label="状态">
+    <div class="stat">
+      <span class="stat-k">心情</span>
+      <div class="bar"><i id="barMood" class="bar-i mood"></i></div>
+    </div>
+    <div class="stat">
+      <span class="stat-k">饱食</span>
+      <div class="bar"><i id="barHunger" class="bar-i hunger"></i></div>
+    </div>
+    <div class="stat">
+      <span class="stat-k">精力</span>
+      <div class="bar"><i id="barEnergy" class="bar-i energy"></i></div>
+    </div>
+  </section>
+
+  <nav class="actions">
+    <button id="btnPat" class="act">摸摸</button>
+    <button id="btnFeed" class="act">喂食</button>
+    <button id="btnChat" class="act primary">聊天</button>
+  </nav>
+
+  <footer class="foot">
+    <span id="keyState" class="key-state dim">未配置 API Key（演示模式）</span>
+  </footer>
+</div>
+
+<!-- 聊天面板 -->
+<div id="chatSheet" class="sheet" hidden>
+  <div class="sheet-inner">
+    <div class="sheet-head">
+      <span>和 <b id="chatWho">小女仆</b> 说说话</span>
+      <button id="btnChatClose" class="icon-btn" aria-label="关闭">✕</button>
+    </div>
+    <div id="chatList" class="chat-list"></div>
+    <div id="chatTip" class="chat-tip" hidden></div>
+    <form id="chatForm" class="chat-form" autocomplete="off">
+      <input id="chatInput" type="text" placeholder="说点什么…" maxlength="200" enterkeyhint="send">
+      <button id="btnSend" class="send" type="submit" aria-label="发送">↑</button>
+    </form>
+  </div>
+</div>
+
+<!-- 设置 -->
+<div id="settings" class="modal" hidden>
+  <div class="modal-card">
+    <div class="modal-head">
+      <span>设置</span>
+      <button id="btnSettingsClose" class="icon-btn" aria-label="关闭">✕</button>
+    </div>
+
+    <div class="modal-body">
+      <label class="field">
+        <span class="field-k">宠物名字</span>
+        <input id="inpName" type="text" maxlength="12" placeholder="小女仆">
+      </label>
+
+      <label class="field">
+        <span class="field-k">API Key</span>
+        <input id="inpKey" type="password" placeholder="sk-…" autocomplete="off" spellcheck="false">
+        <span class="field-hint">只保存在这台设备。点右侧「获取教程」可以一步步教你申请。</span>
+      </label>
+      <div class="row">
+        <button id="btnGetKey" class="btn ghost small">获取教程</button>
+        <button id="btnTestKey" class="btn ghost small">测试连接</button>
+        <button id="btnClearKey" class="btn danger small">清除 Key</button>
+      </div>
+      <div id="keyMsg" class="key-msg" hidden></div>
+
+      <label class="field">
+        <span class="field-k">模型</span>
+        <select id="inpModel">
+          <option value="deepseek-chat">deepseek-chat（便宜，够用）</option>
+          <option value="deepseek-reasoner">deepseek-reasoner（慢，更聪明）</option>
+        </select>
+      </label>
+
+      <div class="field">
+        <span class="field-k">把 DSH 的日记喂给我</span>
+        <span class="field-hint">在电脑上找到 <code>.dsh/storages/session_projcache/sessions/*.json</code>，选文件导入，我用它换经验。</span>
+        <input id="inpFood" type="file" accept=".json,application/json" multiple hidden>
+        <button id="btnFood" class="btn ghost small">选择日志文件</button>
+        <div id="foodMsg" class="key-msg" hidden></div>
+      </div>
+
+      <div class="row">
+        <button id="btnExport" class="btn ghost small">导出存档</button>
+        <button id="btnImport" class="btn ghost small">导入存档</button>
+        <input id="inpImport" type="file" accept=".json,application/json" hidden>
+      </div>
+
+      <div class="about">
+        <p>宠物形象与动作素材来自 <a href="https://github.com/PC2005-cloud/dsh-pet" target="_blank" rel="noopener">PC2005-cloud/dsh-pet</a>（MIT）。本页面不含任何后端，所有数据都在你的浏览器里。</p>
+        <p class="dim">版本 0.1.0 · 纯前端 · 无账号 · 无服务器</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 引导 -->
+<div id="wizard" class="wizard" hidden>
+  <div class="wizard-card">
+    <div id="wizardDots" class="dots"></div>
+    <div id="wizardBody" class="wizard-body"></div>
+    <div id="wizardActions" class="wizard-actions"></div>
+    <button id="btnWizardSkip" class="skip">先跳过，随便逛逛</button>
+  </div>
+</div>
+
+<!-- 悬浮提示卡（获取 Key 时贴在底部） -->
+<div id="floatHint" class="float-hint" hidden>
+  <div class="fh-head">
+    <b>跟着做，大约 2 分钟</b>
+    <button id="btnFloatClose" class="icon-btn" aria-label="收起">✕</button>
+  </div>
+  <ol class="fh-list">
+    <li><span>1</span>用手机号注册 / 登录</li>
+    <li><span>2</span>左边「充值」，充最小额度</li>
+    <li><span>3</span>左边「API keys」→「创建 API key」</li>
+    <li><span>4</span>复制那串 <code>sk-</code> 开头的字符（只显示一次）</li>
+  </ol>
+  <div class="fh-actions">
+    <button id="btnFloatOpen" class="btn small">再打开一次官网</button>
+    <button id="btnFloatDone" class="btn primary small">我复制好了</button>
+  </div>
+</div>
+
+<div id="toast" class="toast" hidden></div>
+
+<script src="app.js"></script>
+</body>
+</html>
