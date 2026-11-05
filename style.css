@@ -997,3 +997,43 @@ video.pet {
 .diag-item .d-k { font-weight: 600; }
 .diag-item .d-v { display: block; margin-top: 2px; font-size: 11px; color: var(--dim); }
 body.wx-open #app { padding-top: 46px; }
+
+/* ---------- 排版保护：彻底压住两端对齐 / 字间距被拉伸 ---------- */
+.wiz-list li,
+.fh-list li {
+  display: block;
+  position: relative;
+  padding-left: 29px;
+  text-align: left;
+  text-align-last: left;
+  word-spacing: normal;
+  letter-spacing: normal;
+}
+.fh-list li { padding-left: 26px; }
+.wiz-list li span.n,
+.fh-list li span {
+  position: absolute;
+  left: 0;
+  top: 1px;
+  margin-right: 0;
+}
+
+.wiz-text,
+.wiz-note,
+.field-hint,
+.key-msg,
+.about p,
+.bubble,
+.msg,
+.diag-item {
+  text-align: left;
+  text-align-last: left;
+  text-justify: auto;
+  word-spacing: normal;
+}
+
+.topbar,
+.who {
+  text-align: left;
+  text-align-last: left;
+}
