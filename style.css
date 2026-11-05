@@ -1220,3 +1220,13 @@ body.wx-open #app { padding-top: 46px; }
   font-size: 12px;
   font-weight: 600;
 }
+
+/* ---------- 鼠标 / 手指拖动 ---------- */
+.pet-wrap {
+  cursor: grab;
+  touch-action: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+.pet-wrap:active { cursor: grabbing; }
+.pet-wrap.dragging { cursor: grabbing; animation: none; }

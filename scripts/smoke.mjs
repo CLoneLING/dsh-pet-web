@@ -51,9 +51,9 @@ while (!$('wizard').hidden && guard < 12) {
 }
 assert($('wizard').hidden === true, '引导可走完并关闭（' + guard + ' 步）');
 
-$('petWrap').click();
+$('btnPat').click();
 await sleep(120);
-assert($('bubble').hidden === false, '点击宠物出现气泡: ' + $('bubbleText').textContent);
+assert($('bubble').hidden === false, '摸摸出现气泡: ' + $('bubbleText').textContent);
 
 const bar = $('chatBar');
 assert(!!bar && bar.querySelector('#chatInput'), '聊天区已内嵌主界面');

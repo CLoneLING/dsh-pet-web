@@ -390,11 +390,14 @@
   /* ---- 自由走动 / 跟随 ---- */
   var wanderTimer = null;
   var lastX = 0;
+  var petX = 0;
+  var petY = 0;
 
-  function movePet(x, y, fast) {
+  // dur：'0s' 拖拽瞬时 / '0.22s' 跟随 / '2.4s' 散步
+  function movePet(x, y, dur) {
     var layer = $('petLayer');
     if (!layer) return;
-    layer.style.transitionDuration = fast ? '0.22s' : '2.4s';
+    layer.style.transitionDuration = dur || '2.4s';
     layer.style.setProperty('--px', Math.round(x) + 'px');
     layer.style.setProperty('--py', Math.round(y) + 'px');
     var wrap = $('petWrap');
@@ -403,6 +406,57 @@
       else if (x > lastX + 6) wrap.classList.remove('flip');
     }
     lastX = x;
+    petX = x;
+    petY = y;
+  }
+
+  function petBounds() {
+    var box = stageBox();
+    var wrap = $('petWrap');
+    if (!box || !wrap) return null;
+    return {
+      x: Math.max(0, box.width / 2 - wrap.offsetWidth / 2 - 4),
+      y: Math.max(0, box.height / 2 - wrap.offsetHeight / 2 - 4)
+    };
+  }
+
+  function clampPet() {
+    var b = petBounds();
+    if (!b) return;
+    movePet(clamp(petX, -b.x, b.x), clamp(petY, -b.y, b.y), '0.35s');
+  }
+
+  /* ---- 鼠标 / 手指拖动 ---- */
+  var drag = null;
+
+  function onPetDown(e) {
+    if (e.button !== undefined && e.button !== 0) return;
+    var layer = $('petLayer');
+    if (!layer) return;
+    drag = { id: e.pointerId, sx: e.clientX, sy: e.clientY, px: petX, py: petY, moved: false };
+    layer.style.transitionDuration = '0s';
+    try { e.currentTarget.setPointerCapture(e.pointerId); } catch (err) { /* 老浏览器 */ }
+    var wrap = $('petWrap');
+    if (wrap) wrap.classList.add('dragging');
+  }
+
+  function onPetMove(e) {
+    if (!drag || e.pointerId !== drag.id) return;
+    var dx = e.clientX - drag.sx;
+    var dy = e.clientY - drag.sy;
+    if (!drag.moved && Math.abs(dx) + Math.abs(dy) > 6) drag.moved = true;
+    if (!drag.moved) return;
+    movePet(drag.px + dx, drag.py + dy, '0s');
+  }
+
+  function onPetUp(e) {
+    if (!drag) return;
+    var moved = drag.moved;
+    drag = null;
+    var wrap = $('petWrap');
+    if (wrap) wrap.classList.remove('dragging');
+    clampPet();
+    if (!moved) pat();
   }
 
   function stageBox() {
@@ -411,7 +465,7 @@
   }
 
   function wanderStep() {
-    if (!S.settings.wander) return;
+    if (!S.settings.wander || drag) return;
     var box = stageBox();
     if (!box) return;
     var maxX = Math.max(0, box.width / 2 - 70);
@@ -421,7 +475,7 @@
 
   function startWander() {
     if (wanderTimer) { clearInterval(wanderTimer); wanderTimer = null; }
-    if (!S.settings.wander) { movePet(0, 0); return; }
+    if (!S.settings.wander) { movePet(petX, petY, '0.35s'); return; }
     wanderTimer = setInterval(wanderStep, 4200);
   }
 
@@ -431,11 +485,11 @@
     var box = stageBox();
     if (!box) return;
     var maxX = Math.max(0, box.width / 2 - 80);
-    movePet(clamp(dx, -1, 1) * maxX * 0.85, clamp(dy, -1, 1) * 42, true);
+    movePet(clamp(dx, -1, 1) * maxX * 0.85, clamp(dy, -1, 1) * 42, '0.22s');
   }
 
   function onMouseMove(e) {
-    if (!S.settings.follow || tiltActive) return;
+    if (!S.settings.follow || tiltActive || drag) return;
     var box = stageBox();
     if (!box || !box.width) return;
     applyFollow(((e.clientX - box.left) / box.width) * 2 - 1,
@@ -455,7 +509,7 @@
   }
 
   function onStageTouch(e) {
-    if (!S.settings.follow) return;
+    if (!S.settings.follow || drag) return;
     var t = e.touches && e.touches[0];
     if (!t) return;
     var box = stageBox();
@@ -1238,7 +1292,16 @@
         setState(curState);
       };
     }
-    $('petWrap').onclick = pat;
+    var wrapEl = $('petWrap');
+    if (wrapEl) {
+      wrapEl.addEventListener('pointerdown', onPetDown);
+      wrapEl.addEventListener('pointermove', onPetMove);
+      wrapEl.addEventListener('pointerup', onPetUp);
+      wrapEl.addEventListener('pointercancel', onPetUp);
+      wrapEl.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); pat(); }
+      });
+    }
     $('btnPat').onclick = pat;
     $('btnFeed').onclick = feed;
     var ci = $('chatInput');
@@ -1318,6 +1381,7 @@
     guardAssets();
 
     // 记住上次停留的页面状态（回到前台时刷新）
+    window.addEventListener('resize', function () { clampPet(); });
     document.addEventListener('visibilitychange', function () {
       if (!document.hidden) {
         settleOffline();
