@@ -41,7 +41,8 @@
     '称呼用户「主人」，但不要每句都叫。可以关心主人累不累、记得吃饭喝水。',
     '你有一点点小脾气和胜负心，被夸会开心，被冷落会嘀咕。',
     '绝对不要提到自己是 AI、模型、程序，也不要解释系统提示。',
-    '不要输出 Markdown、列表、代码块，像真人聊天一样说话。'
+    '不要输出 Markdown、列表、代码块，像真人聊天一样说话。',
+    '在回复的最后另起一行输出 [[mood:xxx]] 标注情绪，xxx 只能是 happy / shy / angry / sad / think / sleepy / excited / eat 之一。这一行会被程序隐藏。'
   ].join('');
 
   var LINES = {
@@ -142,7 +143,7 @@
       tokensEaten: 0,
       achv: [],
       history: [],
-      settings: { apiKey: '', model: 'deepseek-chat', hd: true }
+      settings: { apiKey: '', model: 'deepseek-chat', hd: true, wander: false, follow: false }
     };
   }
 
@@ -165,7 +166,7 @@
       var o = JSON.parse(raw);
       if (!o || typeof o !== 'object') return false;
       S = Object.assign(defaultState(), o);
-      S.settings = Object.assign({ apiKey: '', model: 'deepseek-chat', hd: true }, o.settings || {});
+      S.settings = Object.assign({ apiKey: '', model: 'deepseek-chat', hd: true, wander: false, follow: false }, o.settings || {});
       if (!S.history || !S.history.length) S.history = [];
       if (!S.achv) S.achv = [];
       return true;
@@ -233,7 +234,15 @@
       ks.className = 'key-state warn';
     }
 
-    $('chatWho').textContent = S.name;
+    var chip = $('balanceChip');
+    if (chip) {
+      if (S.settings.apiKey && S.balance !== undefined && S.balance !== null) {
+        chip.hidden = false;
+        chip.textContent = '余额 ' + S.balance + ' ' + (S.balanceCur || 'CNY');
+      } else {
+        chip.hidden = true;
+      }
+    }
   }
 
   // 打包成单文件时，bundle.mjs 会注入 window.__PET_ASSETS__（文件名 -> data URI）
@@ -261,6 +270,13 @@
   var curState = 'idle';
   var brokenHD = {};
 
+  var HD_ONLY = {
+    'yawn':   { webm: 'haqian-liantian.webm', fallback: 'work.tired' },
+    'look':   { webm: 'dongzhangxiwang.webm', fallback: 'idle' },
+    'juggle': { webm: 'sanqiu-paojie.webm',   fallback: 'click.happy' },
+    'dance':  { webm: 'youya-nvpuwu.webm',    fallback: 'click.happy' }
+  };
+
   function canPlayWebm() {
     if (typeof canPlayWebm.cache === 'undefined') {
       try {
@@ -273,24 +289,39 @@
     return canPlayWebm.cache;
   }
 
-  function setState(name, holdMs) {
-    var key = ART[name] ? name : 'idle';
-    var file = ART[key];
+  function resolveArt(name) {
+    if (ART[name]) {
+      return { gif: ART[name], webm: ART[name].replace(/\.gif$/, '.webm') };
+    }
+    var hd = HD_ONLY[name];
+    if (hd) {
+      return { gif: ART[hd.fallback] || ART['idle'], webm: hd.webm };
+    }
+    return { gif: ART['idle'], webm: 'daiji-huxi-xiuxian.webm' };
+  }
+
+  // 同一个动作不重设 src -> 不会重播；正在播放的动作也不会被自动行为打断
+  function setState(name, holdMs, force) {
+    var key = (ART[name] || HD_ONLY[name]) ? name : 'idle';
+    if (stateLock && !force) return;
+
+    var art = resolveArt(key);
     var img = $('petImg');
     var video = $('petVideo');
-    var useHD = !!(S.settings.hd !== false && video && canPlayWebm() && !brokenHD[key]);
+    var useHD = !!(S.settings.hd !== false && video && canPlayWebm() && !brokenHD[art.webm]);
+    var changed = key !== curState;
     curState = key;
 
     if (useHD) {
       img.hidden = true;
       video.hidden = false;
-      var vsrc = assetUrl(file.replace(/\.gif$/, '.webm'));
+      var vsrc = assetUrl(art.webm);
       if (video.getAttribute('src') !== vsrc) {
         video.setAttribute('src', vsrc);
         try {
           var pr = video.play();
           if (pr && pr.catch) pr.catch(function () {});
-        } catch (e) { /* 自动播放被拦就停住，下次交互再试 */ }
+        } catch (e) { /* 自动播放被拦，等下次交互 */ }
       }
     } else {
       if (video) {
@@ -298,19 +329,20 @@
         video.removeAttribute('src');
       }
       img.hidden = false;
-      var src = assetUrl(file);
-      if (img.getAttribute('src') !== src) {
-        img.setAttribute('src', src);
-      }
+      var src = assetUrl(art.gif);
+      if (img.getAttribute('src') !== src) img.setAttribute('src', src);
     }
+
     if (stateTimer) { clearTimeout(stateTimer); stateTimer = null; }
-    if (holdMs) {
+    if (holdMs && holdMs > 0) {
       stateLock = true;
       stateTimer = setTimeout(function () {
         stateLock = false;
         stateTimer = null;
         autoState();
       }, holdMs);
+    } else if (changed) {
+      stateLock = false;
     }
   }
 
@@ -324,6 +356,148 @@
     } else {
       setState('idle');
     }
+  }
+
+  /* ---- 随机行为：没在做事的时候自己找乐子 ---- */
+  var AMBIENT = ['click.happy', 'click.shy', 'click.angry', 'work.think', 'work.busy',
+    'work.done', 'murmur.idle', 'eat.token', 'drag.suspend', 'look', 'yawn', 'juggle', 'dance'];
+  var MURMUR = ['唔…', '……', '在忙吗？', '我在发呆。', '要不要休息一下？', '今天也辛苦啦。'];
+  var ambientTimer = null;
+
+  function scheduleAmbient() {
+    if (ambientTimer) clearTimeout(ambientTimer);
+    var wait = 6000 + Math.random() * 12000;
+    ambientTimer = setTimeout(function () {
+      ambientTick();
+      scheduleAmbient();
+    }, wait);
+  }
+
+  function ambientTick() {
+    if (stateLock || sending || document.hidden) return;
+    var h = new Date().getHours();
+    if (h >= 23 || h < 6 || S.energy < 22) { setState('sleep.loop'); return; }
+    if (S.hunger < 25) { setState('eat.token', 3000); say(pick(LINES.hungry)); return; }
+    setState(pick(AMBIENT), 2600 + Math.random() * 1800);
+    if (Math.random() < 0.3) say(pick(MURMUR));
+  }
+
+  /* ---- 自由走动 / 跟随 ---- */
+  var wanderTimer = null;
+  var lastX = 0;
+
+  function movePet(x, y) {
+    var layer = $('petLayer');
+    if (!layer) return;
+    layer.style.setProperty('--px', Math.round(x) + 'px');
+    layer.style.setProperty('--py', Math.round(y) + 'px');
+    var wrap = $('petWrap');
+    if (wrap) {
+      if (x < lastX - 6) wrap.classList.add('flip');
+      else if (x > lastX + 6) wrap.classList.remove('flip');
+    }
+    lastX = x;
+  }
+
+  function stageBox() {
+    var stage = $('stage');
+    return stage ? stage.getBoundingClientRect() : null;
+  }
+
+  function wanderStep() {
+    if (!S.settings.wander) return;
+    var box = stageBox();
+    if (!box) return;
+    var maxX = Math.max(0, box.width / 2 - 70);
+    var maxY = Math.max(0, box.height / 2 - 80);
+    movePet((Math.random() * 2 - 1) * maxX, (Math.random() * 2 - 1) * maxY * 0.7);
+  }
+
+  function startWander() {
+    if (wanderTimer) { clearInterval(wanderTimer); wanderTimer = null; }
+    if (!S.settings.wander) { movePet(0, 0); return; }
+    wanderTimer = setInterval(wanderStep, 4200);
+  }
+
+  var tiltActive = false;
+
+  function applyFollow(dx, dy) {
+    var box = stageBox();
+    if (!box) return;
+    var maxX = Math.max(0, box.width / 2 - 80);
+    movePet(clamp(dx, -1, 1) * maxX * 0.85, clamp(dy, -1, 1) * 42);
+  }
+
+  function onMouseMove(e) {
+    if (!S.settings.follow || tiltActive) return;
+    var box = stageBox();
+    if (!box || !box.width) return;
+    applyFollow(((e.clientX - box.left) / box.width) * 2 - 1,
+                ((e.clientY - box.top) / box.height) * 2 - 1);
+  }
+
+  function onTilt(e) {
+    if (!S.settings.follow) return;
+    var g = Number(e.gamma) || 0;
+    var b = Number(e.beta) || 0;
+    tiltActive = true;
+    applyFollow(g / 35, (b - 45) / 90);
+  }
+
+  function enableTilt() {
+    if (typeof DeviceOrientationEvent === 'undefined') { toast('这台设备没有体感'); return; }
+    var start = function () {
+      window.addEventListener('deviceorientation', onTilt, true);
+      S.settings.follow = true;
+      $('inpFollow').checked = true;
+      save();
+      toast('体感已开启，倾斜手机试试');
+    };
+    if (typeof DeviceOrientationEvent.requestPermission === 'function') {
+      DeviceOrientationEvent.requestPermission().then(function (res) {
+        if (res === 'granted') start(); else toast('体感权限被拒绝');
+      }).catch(function () { toast('体感不可用'); });
+    } else {
+      start();
+    }
+  }
+
+  /* ---- 余额 ---- */
+  function refreshBalance(silent) {
+    if (!S.settings.apiKey) {
+      if (!silent) toast('先在设置里填一把 API Key');
+      return;
+    }
+    fetch(API_BASE + '/user/balance', { headers: { Authorization: 'Bearer ' + S.settings.apiKey } })
+      .then(function (r) {
+        if (!r.ok) throw new Error('HTTP ' + r.status);
+        return r.json();
+      })
+      .then(function (j) {
+        var info = (j && j.balance_infos && j.balance_infos[0]) || null;
+        if (!info) throw new Error('没有余额信息');
+        S.balance = info.total_balance;
+        S.balanceCur = info.currency || 'CNY';
+        S.balanceAt = Date.now();
+        render();
+        if (!silent) toast('余额 ' + S.balance + ' ' + S.balanceCur);
+      })
+      .catch(function (e) {
+        if (!silent) toast('查询失败：' + ((e && e.message) || '网络问题'));
+      });
+  }
+
+  /* ---- 情绪标签 ---- */
+  var MOOD_STATE = {
+    happy: 'click.happy', shy: 'click.shy', angry: 'click.angry',
+    sad: 'work.tired', think: 'work.think', sleepy: 'sleep.loop',
+    excited: 'work.done', eat: 'eat.token'
+  };
+
+  function extractMood(text) {
+    var m = /\[\[\s*mood\s*:\s*([a-z]+)\s*\]\]/i.exec(String(text));
+    var clean = String(text).replace(/\[\[\s*mood\s*:\s*[a-z]+\s*\]\]/gi, '').trim();
+    return { mood: m ? m[1].toLowerCase() : '', text: clean };
   }
 
   var bubbleTimer = null;
@@ -460,20 +634,10 @@
   var sending = false;
 
   function openChat() {
-    $('chatSheet').hidden = false;
-    chatOpen = true;
     renderHistory();
-    setTimeout(function () { $('chatInput').focus(); }, 120);
-    if (!S.settings.apiKey) {
-      setTip('现在是演示模式。想让我真的会说话，去设置里填一把 API Key 吧。');
-    } else {
-      setTip('');
-    }
-  }
-
-  function closeChat() {
-    $('chatSheet').hidden = true;
-    chatOpen = false;
+    var el = $('chatInput');
+    if (el) el.focus();
+    setTip(S.settings.apiKey ? '' : '现在是演示模式。填一把 API Key，我就能真的说话了。');
   }
 
   function setTip(text) {
@@ -658,8 +822,10 @@
       sending = false;
       $('btnSend').disabled = false;
       stateLock = false;
-      var out = String(full || '').trim();
-      if (!out) out = '嗯…我刚刚走神了，你再说一次？';
+      var raw = String(full || '').trim();
+      if (!raw) raw = '嗯…我刚刚走神了，你再说一次？';
+      var parsed = extractMood(raw);
+      var out = parsed.text || raw;
       bubbleEl.textContent = out;
       pushHistory('assistant', out);
       S.chats += 1;
@@ -667,11 +833,11 @@
       S.hunger = clamp(S.hunger - 1.5, 0, 100);
       S.energy = clamp(S.energy - 1, 0, 100);
       addExp(8 + Math.min(20, Math.round(out.length / 8)));
-      petReact('click.happy');
+      setState(MOOD_STATE[parsed.mood] || 'click.happy', 3200, true);
       say(out);
       checkAchv();
       scrollChat();
-      autoState();
+      if (S.chats % 5 === 0) refreshBalance(true);
       save();
     }
   }
@@ -683,6 +849,8 @@
     $('inpKey').value = S.settings.apiKey;
     $('inpModel').value = S.settings.model || 'deepseek-chat';
     $('inpHd').checked = S.settings.hd !== false;
+    $('inpWander').checked = !!S.settings.wander;
+    $('inpFollow').checked = !!S.settings.follow;
     $('keyMsg').hidden = true;
     $('foodMsg').hidden = true;
     $('settings').hidden = false;
@@ -694,6 +862,9 @@
     S.settings.apiKey = ($('inpKey').value || '').trim();
     S.settings.model = $('inpModel').value || 'deepseek-chat';
     S.settings.hd = $('inpHd').checked;
+    S.settings.wander = $('inpWander').checked;
+    S.settings.follow = $('inpFollow').checked;
+    startWander();
     setState(curState);
     render();
     save();
@@ -1035,8 +1206,15 @@
     $('petWrap').onclick = pat;
     $('btnPat').onclick = pat;
     $('btnFeed').onclick = feed;
-    $('btnChat').onclick = openChat;
-    $('btnChatClose').onclick = closeChat;
+    var ci = $('chatInput');
+    if (ci) {
+      ci.addEventListener('focus', function () { chatOpen = true; });
+      ci.addEventListener('blur', function () { chatOpen = false; });
+    }
+    var stageEl = $('stage');
+    if (stageEl) stageEl.addEventListener('mousemove', onMouseMove);
+    $('btnTilt').onclick = enableTilt;
+    $('btnBalance').onclick = function () { refreshBalance(false); };
 
     $('chatForm').onsubmit = function (e) {
       e.preventDefault();
@@ -1436,7 +1614,11 @@
     checkAchv();
     save();
 
+    renderHistory();
+    startWander();
+    scheduleAmbient();
     setTimeout(warmup, 1500);
+    setTimeout(function () { refreshBalance(true); }, 1200);
   }
 
   if (document.readyState === 'loading') {

@@ -40,15 +40,17 @@
     </div>
   </header>
 
-  <main class="stage">
+  <main class="stage" id="stage">
     <div class="dust" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></div>
     <div id="bubble" class="bubble" hidden><span id="bubbleText"></span></div>
 
-    <button id="petWrap" class="pet-wrap" aria-label="摸摸宠物">
-      <video id="petVideo" class="pet" muted playsinline autoplay loop hidden></video>
-      <img id="petImg" class="pet" alt="宠物" src="assets/gifs/daiji-huxi-xiuxian.gif" draggable="false">
-      <span class="pet-shadow" aria-hidden="true"></span>
-    </button>
+    <div id="petLayer" class="pet-layer">
+      <button id="petWrap" class="pet-wrap" aria-label="摸摸宠物">
+        <video id="petVideo" class="pet" muted playsinline autoplay loop hidden></video>
+        <img id="petImg" class="pet" alt="宠物" src="assets/gifs/daiji-huxi-xiuxian.gif" draggable="false">
+        <span class="pet-shadow" aria-hidden="true"></span>
+      </button>
+    </div>
 
     <div class="exp-wrap" title="经验">
       <div id="expFill" class="exp-fill"></div>
@@ -74,29 +76,22 @@
   <nav class="actions">
     <button id="btnPat" class="act">摸摸</button>
     <button id="btnFeed" class="act">喂食</button>
-    <button id="btnChat" class="act primary">聊天</button>
   </nav>
 
-  <footer class="foot">
-    <span id="keyState" class="key-state dim">未配置 API Key（演示模式）</span>
-    <p class="foot-note">对话由 AI 生成，仅供娱乐。</p>
-  </footer>
-</div>
-
-<!-- 聊天面板 -->
-<div id="chatSheet" class="sheet" hidden>
-  <div class="sheet-inner">
-    <div class="sheet-head">
-      <span>和 <b id="chatWho">小女仆</b> 说说话</span>
-      <button id="btnChatClose" class="icon-btn" aria-label="关闭">✕</button>
-    </div>
+  <section class="chatbar" id="chatBar">
     <div id="chatList" class="chat-list"></div>
     <div id="chatTip" class="chat-tip" hidden></div>
     <form id="chatForm" class="chat-form" autocomplete="off">
-      <input id="chatInput" type="text" placeholder="说点什么…" maxlength="200" enterkeyhint="send">
+      <input id="chatInput" type="text" placeholder="和我说点什么…" maxlength="200" enterkeyhint="send">
       <button id="btnSend" class="send" type="submit" aria-label="发送">↑</button>
     </form>
-  </div>
+  </section>
+
+  <footer class="foot">
+    <span id="keyState" class="key-state dim">未配置 API Key（演示模式）</span>
+    <span id="balanceChip" class="balance" hidden></span>
+    <p class="foot-note">对话由 AI 生成，仅供娱乐。</p>
+  </footer>
 </div>
 
 <!-- 设置 -->
@@ -116,7 +111,7 @@
       <label class="field">
         <span class="field-k">API Key</span>
         <input id="inpKey" type="password" placeholder="sk-…" autocomplete="off" spellcheck="false">
-        <span class="field-hint">只保存在这台设备。点右侧「获取教程」可以一步步教你申请。</span>
+        <span class="field-hint">只保存在这台设备。点「获取教程」可以一步步教你申请。</span>
       </label>
       <div class="row">
         <button id="btnGetKey" class="btn ghost small">获取教程</button>
@@ -137,6 +132,20 @@
         <input id="inpHd" type="checkbox" checked>
         <span>高清动作<em>（WebM，更清晰；画面异常时可关掉）</em></span>
       </label>
+
+      <label class="check-row">
+        <input id="inpWander" type="checkbox">
+        <span>自由活动<em>（会自己在屏幕上走来走去）</em></span>
+      </label>
+
+      <label class="check-row">
+        <input id="inpFollow" type="checkbox">
+        <span>跟随我<em>（鼠标方向 / 手机倾斜）</em></span>
+      </label>
+      <div class="row">
+        <button id="btnTilt" class="btn ghost small">开启体感</button>
+        <button id="btnBalance" class="btn ghost small">查询余额</button>
+      </div>
 
       <div class="field">
         <span class="field-k">把 DSH 的日记喂给我</span>
@@ -167,7 +176,7 @@
 
       <div class="about">
         <p>宠物形象与动作素材来自 <a href="https://github.com/PC2005-cloud/dsh-pet" target="_blank" rel="noopener">PC2005-cloud/dsh-pet</a>（MIT）。本页面不含任何后端，所有数据都在你的浏览器里。</p>
-        <p class="dim">版本 0.1.0 · 纯前端 · 无账号 · 无服务器</p>
+        <p class="dim">版本 0.2.0 · 纯前端 · 无账号 · 无服务器</p>
 
         <details class="lic">
           <summary>开源许可（MIT）</summary>

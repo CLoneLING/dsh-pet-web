@@ -55,9 +55,8 @@ $('petWrap').click();
 await sleep(120);
 assert($('bubble').hidden === false, '点击宠物出现气泡: ' + $('bubbleText').textContent);
 
-$('btnChat').click();
-await sleep(80);
-assert($('chatSheet').hidden === false, '聊天面板打开');
+const bar = $('chatBar');
+assert(!!bar && bar.querySelector('#chatInput'), '聊天区已内嵌主界面');
 $('chatInput').value = '今天好累啊';
 $('chatForm').dispatchEvent(new window.Event('submit', { bubbles: true, cancelable: true }));
 await sleep(1400);
@@ -70,7 +69,6 @@ const S = JSON.parse(raw || '{}');
 assert(S.exp > 0, '经验增长: ' + S.exp);
 assert(S.chats >= 1, '对话计数: ' + S.chats);
 
-$('btnChatClose').click();
 $('btnSettings').click();
 await sleep(80);
 assert($('settings').hidden === false, '设置打开');
@@ -105,7 +103,7 @@ if (!window.TextDecoder) window.TextDecoder = TextDecoder;
 $('btnSettings').click();
 $('inpKey').value = 'sk-fake-key-for-test';
 $('btnSettingsClose').click();
-$('btnChat').click();
+$('chatInput').focus();
 await sleep(60);
 window.fetch = () => Promise.resolve({
   ok: false, status: 401,
@@ -144,6 +142,19 @@ await sleep(500);
 const last = doc.querySelectorAll('.msg.pet');
 const lastText = last.length ? last[last.length - 1].textContent : '';
 assert(lastText.indexOf('我在') >= 0, '流式回复拼装正确: ' + lastText);
+/* 情绪标签：应被剥离，不显示给用户 */
+window.fetch = () => Promise.resolve({
+  ok: true, status: 200,
+  body: streamOf(['data: {"choices":[{"delta":{"content":"哼，才没有想你。"}}]}\n\n',
+                  'data: {"choices":[{"delta":{"content":"\\n[[mood:shy]]"}}]}\n\ndata: [DONE]\n\n'])
+});
+$('chatInput').value = '想我了吗';
+$('chatForm').dispatchEvent(new window.Event('submit', { bubbles: true, cancelable: true }));
+await sleep(500);
+const bubbleTxt = $('bubbleText').textContent;
+assert(bubbleTxt.indexOf('[[mood') === -1, '情绪标签已隐藏: ' + JSON.stringify(bubbleTxt));
+assert(bubbleTxt.indexOf('才没有想你') >= 0, '回复正文保留');
+
 const saved = JSON.parse(window.localStorage.getItem('dshpet.save.v1') || '{}');
 assert((saved.history || []).length >= 4, '对话历史写入存档: ' + (saved.history || []).length + ' 条');
 
