@@ -35,14 +35,26 @@
 
 > 具体菜单名以控制台为准。国内节点**必须实名**，但如果只用平台子域、不绑自定义域名，通常不涉及 ICP 备案。
 
-## 方案 C：Cloudflare Pages（海外，免备案）
+## 方案 C：Cloudflare Pages（推荐，免备案，免费）
 
-1. 注册 Cloudflare（邮箱即可，不需要实名）
-2. Workers & Pages → Create → Pages → 连接 Git 仓库
-3. 构建命令留空，输出目录 `dist`
-4. 得到 `*.pages.dev` 子域；绑自定义域名只需在 CF 里加一条 CNAME
+1. 仓库推到 GitHub（本地仓库已初始化好，见文末）
+2. Cloudflare Dashboard → Workers & Pages → Create → Pages → Connect to Git
+3. 选仓库，生产分支填 **main**
+4. 构建配置照抄：
 
-国内访问速度一般，适合"能打开就行"。
+   | 项 | 填什么 |
+   |---|---|
+   | Framework preset | **None** |
+   | Build command | **留空** |
+   | Build output directory | **.** |
+
+5. Save and Deploy → 得到 `https://<项目名>.pages.dev`
+
+> 不需要构建：根目录的 `index.html` + `style.css` + `app.js` + `assets/` 本身就是可运行站点。
+> `dist/` 里的单文件版只用于「发文件给朋友」，不必上 CI。
+
+绑定自己的域名（可选）：Pages 项目 → Custom domains → 添加域名。
+域名在 Cloudflare 托管时自动加 CNAME；不在的话按提示去注册商改 DNS。**海外节点，不需要 ICP 备案。**
 
 ## 方案 D：国内对象存储 + 自定义域名（**必须备案**）
 
@@ -70,3 +82,14 @@
 3. 填一把测试 Key → 「测试连接」显示余额
 4. 断网后刷新：页面能打开（离线缓存看平台配置），但聊天会提示网络错误
 5. 用无痕窗口打开：应该是一套全新存档（证明没有服务端状态）
+
+---
+
+## 本地仓库已就绪
+
+```bash
+git remote add origin https://github.com/<你的用户名>/<仓库名>.git
+git push -u origin main
+```
+
+25 个文件、约 7.5 MB（含 14 个 GIF）。`.gitignore` 已排除 `dist/`、`node_modules/` 以及工作区里与本项目无关的文件。
