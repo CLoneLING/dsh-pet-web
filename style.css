@@ -193,7 +193,7 @@ body { overflow: hidden; }
   min-width: 160px;
   height: auto;
   image-rendering: auto;
-  filter: drop-shadow(0 14px 22px rgba(0, 0, 0, 0.42));
+  filter: drop-shadow(0 14px 22px rgba(0, 0, 0, 0.42)) contrast(1.04) saturate(1.06);
   user-select: none;
   pointer-events: none;
 }
@@ -223,6 +223,7 @@ body { overflow: hidden; }
   width: 66%;
   height: 8px;
   margin-top: 16px;
+  z-index: 1;
   border-radius: 999px;
   background: rgba(255, 255, 255, 0.12);
   overflow: hidden;
@@ -805,4 +806,118 @@ code {
   font-size: 10px;
   line-height: 1.6;
   color: rgba(150, 156, 184, 0.75);
+}
+
+/* ---------- 场景装修：光晕 / 地面 / 浮尘 ---------- */
+.stage::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 48%;
+  width: 82%;
+  height: 62%;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  background: radial-gradient(circle,
+    rgba(255, 179, 199, 0.18) 0%,
+    rgba(199, 157, 255, 0.12) 38%,
+    rgba(138, 212, 255, 0.06) 58%,
+    transparent 72%);
+  filter: blur(8px);
+  z-index: 0;
+  pointer-events: none;
+}
+
+.stage::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: 12%;
+  width: 66%;
+  height: 20px;
+  transform: translateX(-50%);
+  border-radius: 50%;
+  background: radial-gradient(ellipse at center, rgba(8, 6, 16, 0.55), transparent 72%);
+  z-index: 0;
+  pointer-events: none;
+}
+
+.pet-wrap { z-index: 1; }
+.bubble { z-index: 2; }
+
+.dust {
+  position: absolute;
+  left: 0; top: 0; right: 0; bottom: 0;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+.dust i {
+  position: absolute;
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: rgba(255, 236, 200, 0.55);
+  box-shadow: 0 0 6px rgba(255, 236, 200, 0.5);
+  animation: floatUp 11s linear infinite;
+}
+.dust i:nth-child(1) { left: 12%; bottom: 18%; animation-delay: 0s; }
+.dust i:nth-child(2) { left: 28%; bottom: 8%;  animation-delay: 3.2s; opacity: 0.7; }
+.dust i:nth-child(3) { left: 46%; bottom: 22%; animation-delay: 6.1s; width: 2px; height: 2px; }
+.dust i:nth-child(4) { left: 68%; bottom: 12%; animation-delay: 1.7s; opacity: 0.6; }
+.dust i:nth-child(5) { left: 82%; bottom: 26%; animation-delay: 4.4s; width: 2px; height: 2px; }
+.dust i:nth-child(6) { left: 92%; bottom: 6%;  animation-delay: 8.3s; opacity: 0.5; }
+
+@keyframes floatUp {
+  0%   { transform: translateY(0) scale(1); opacity: 0; }
+  15%  { opacity: 0.9; }
+  75%  { opacity: 0.55; }
+  100% { transform: translateY(-160px) scale(0.7); opacity: 0; }
+}
+
+/* ---------- 互动特效（心心 / 星星 / Zzz） ---------- */
+.fx {
+  position: absolute;
+  z-index: 3;
+  pointer-events: none;
+  font-size: 15px;
+  line-height: 1;
+  font-weight: 700;
+  animation: fxUp 1.15s ease-out forwards;
+  text-shadow: 0 0 10px currentColor;
+}
+
+@keyframes fxUp {
+  0%   { opacity: 0; transform: translateY(0) scale(0.5); }
+  18%  { opacity: 1; transform: translateY(-8px) scale(1.05); }
+  100% { opacity: 0; transform: translateY(-66px) scale(0.9); }
+}
+
+/* ---------- 高清视频层 ---------- */
+.pet[hidden] { display: none; }
+video.pet {
+  object-fit: contain;
+  background: transparent;
+  -webkit-mask-image: -webkit-radial-gradient(white, black); /* 老 WebView 的透明兼容 */
+}
+
+.check-row {
+  display: flex;
+  align-items: center;
+  margin: 16px 0 4px;
+  font-size: 13px;
+  color: var(--text);
+  cursor: pointer;
+}
+.check-row input {
+  width: 18px;
+  height: 18px;
+  margin-right: 10px;
+  accent-color: #ff9db8;
+}
+.check-row em {
+  font-style: normal;
+  font-size: 11px;
+  color: var(--dim);
+  margin-left: 4px;
 }

@@ -41,7 +41,8 @@ npx serve .
 index.html              页面骨架（含引导/设置/聊天面板）
 style.css               样式
 app.js                  全部逻辑（状态机、聊天、引导、日志导入）
-assets/gifs/            14 个透明 GIF（120 帧/个）
+assets/gifs/            14 个透明 GIF（220×124，回退用）
+assets/webm/            14 个高清 WebM（640×360，VP9+Alpha，默认播放）
 sources.json            素材清单：每个状态的 sha256、帧数、CDN 回退顺序
 scripts/fetch-assets.mjs  从上游仓库重新拉素材
 scripts/bundle.mjs      打包成目录版 / 单文件版
@@ -74,6 +75,7 @@ node scripts/bundle.mjs --no-inline # 只出目录版（省 11MB）
 | 行为 | 效果 |
 |---|---|
 | 聊天 | +8~28 经验，心情 +6 |
+| 摸摸 | 飘心心；喂食/升级飘星星 |
 | 摸摸 | +2 经验，心情 +4 |
 | 喂食 | +4 经验，饱食 +18（10 次解锁成就） |
 | **吃 DSH 日志** | 按 token 量折算，单次最高 +600 经验 |

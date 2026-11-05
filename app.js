@@ -142,7 +142,7 @@
       tokensEaten: 0,
       achv: [],
       history: [],
-      settings: { apiKey: '', model: 'deepseek-chat' }
+      settings: { apiKey: '', model: 'deepseek-chat', hd: true }
     };
   }
 
@@ -165,7 +165,7 @@
       var o = JSON.parse(raw);
       if (!o || typeof o !== 'object') return false;
       S = Object.assign(defaultState(), o);
-      S.settings = Object.assign({ apiKey: '', model: 'deepseek-chat' }, o.settings || {});
+      S.settings = Object.assign({ apiKey: '', model: 'deepseek-chat', hd: true }, o.settings || {});
       if (!S.history || !S.history.length) S.history = [];
       if (!S.achv) S.achv = [];
       return true;
@@ -191,6 +191,7 @@
     S.exp = Math.max(0, S.exp + n);
     var after = levelInfo(S.exp).lv;
     if (after > before) {
+      fx('spark', 6);
       say(pick(LINES.levelup));
       setState('click.happy', 3200);
       toast('升级了！Lv.' + after);
@@ -257,11 +258,50 @@
     }
   }
 
+  var curState = 'idle';
+  var brokenHD = {};
+
+  function canPlayWebm() {
+    if (typeof canPlayWebm.cache === 'undefined') {
+      try {
+        var t = document.createElement('video');
+        canPlayWebm.cache = !!(t.canPlayType && t.canPlayType('video/webm; codecs="vp9"') !== '');
+      } catch (e) {
+        canPlayWebm.cache = false;
+      }
+    }
+    return canPlayWebm.cache;
+  }
+
   function setState(name, holdMs) {
-    var file = ART[name] || ART['idle'];
+    var key = ART[name] ? name : 'idle';
+    var file = ART[key];
     var img = $('petImg');
-    var src = assetUrl(file);    if (img.getAttribute('src') !== src) {
-      img.setAttribute('src', src);
+    var video = $('petVideo');
+    var useHD = !!(S.settings.hd !== false && video && canPlayWebm() && !brokenHD[key]);
+    curState = key;
+
+    if (useHD) {
+      img.hidden = true;
+      video.hidden = false;
+      var vsrc = assetUrl(file.replace(/\.gif$/, '.webm'));
+      if (video.getAttribute('src') !== vsrc) {
+        video.setAttribute('src', vsrc);
+        try {
+          var pr = video.play();
+          if (pr && pr.catch) pr.catch(function () {});
+        } catch (e) { /* 自动播放被拦就停住，下次交互再试 */ }
+      }
+    } else {
+      if (video) {
+        video.hidden = true;
+        video.removeAttribute('src');
+      }
+      img.hidden = false;
+      var src = assetUrl(file);
+      if (img.getAttribute('src') !== src) {
+        img.setAttribute('src', src);
+      }
     }
     if (stateTimer) { clearTimeout(stateTimer); stateTimer = null; }
     if (holdMs) {
@@ -355,6 +395,7 @@
     var st = r < 0.2 ? 'click.angry' : (r < 0.45 ? 'click.shy' : 'click.happy');
     var line = r < 0.2 ? pick(LINES.patAngry) : (r < 0.45 ? pick(LINES.patShy) : pick(LINES.pat));
     petReact(st);
+    fx('heart', 3);
     say(line);
     addExp(2);
     save();
@@ -370,6 +411,7 @@
     S.mood = clamp(S.mood + 6, 0, 100);
     S.snacks += 1;
     petReact('eat.token');
+    fx('spark', 3);
     say(pick(LINES.feed));
     addExp(4);
     checkAchv();
@@ -383,6 +425,33 @@
     w.classList.add('react');
     setTimeout(function () { w.classList.remove('react'); }, 460);
     setState(st, 2600);
+  }
+
+  // 小特效：心心 / 星星 / Zzz
+  function fx(kind, count) {
+    var stage = document.querySelector('.stage');
+    var wrap = $('petWrap');
+    if (!stage || !wrap) return;
+    var r = wrap.getBoundingClientRect();
+    var sr = stage.getBoundingClientRect();
+    var n = count || 1;
+    for (var i = 0; i < n; i++) {
+      (function (delay) {
+        setTimeout(function () {
+          var el = document.createElement('span');
+          el.className = 'fx';
+          el.textContent = kind === 'heart' ? '♥' : (kind === 'spark' ? '✦' : 'Z');
+          el.style.color = kind === 'heart' ? '#ff8fab' : (kind === 'spark' ? '#ffd479' : '#8ad4ff');
+          el.style.fontSize = (13 + Math.random() * 6) + 'px';
+          el.style.left = (r.left - sr.left + r.width * (0.22 + Math.random() * 0.56)) + 'px';
+          el.style.top = (r.top - sr.top + r.height * (0.12 + Math.random() * 0.3)) + 'px';
+          stage.appendChild(el);
+          setTimeout(function () {
+            if (el.parentNode) el.parentNode.removeChild(el);
+          }, 1250);
+        }, delay);
+      })(i * 90);
+    }
   }
 
   /* ========== 聊天 ========== */
@@ -613,6 +682,7 @@
     $('inpName').value = S.name;
     $('inpKey').value = S.settings.apiKey;
     $('inpModel').value = S.settings.model || 'deepseek-chat';
+    $('inpHd').checked = S.settings.hd !== false;
     $('keyMsg').hidden = true;
     $('foodMsg').hidden = true;
     $('settings').hidden = false;
@@ -623,6 +693,8 @@
     S.name = ($('inpName').value || '小女仆').trim().slice(0, 12) || '小女仆';
     S.settings.apiKey = ($('inpKey').value || '').trim();
     S.settings.model = $('inpModel').value || 'deepseek-chat';
+    S.settings.hd = $('inpHd').checked;
+    setState(curState);
     render();
     save();
   }
@@ -953,6 +1025,13 @@
   /* ========== 事件绑定 ========== */
 
   function bind() {
+    var vid = $('petVideo');
+    if (vid) {
+      vid.onerror = function () {
+        brokenHD[curState] = true;
+        setState(curState);
+      };
+    }
     $('petWrap').onclick = pat;
     $('btnPat').onclick = pat;
     $('btnFeed').onclick = feed;

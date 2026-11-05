@@ -33,7 +33,12 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
 
-### 已收录的文件（14 个，共 7.90 MB）
+### 已收录的文件
+
+**高清动作（14 个 WebM，640×360，VP9 + Alpha，共 5.6 MB）** —— 与下方 GIF 同源、同名，用于高清播放；
+
+**兼容动作（14 个 GIF，220×124，每帧透明，共 7.90 MB）** —— 老浏览器 / 关闭高清时的回退。
+
 
 | 状态键 | 文件 | 帧数 | 透明帧 |
 |---|---|---|---|

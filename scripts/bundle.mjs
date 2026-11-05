@@ -57,6 +57,16 @@ if (WITH_INLINE) {
     bytes += buf.length;
     map[f] = 'data:image/gif;base64,' + buf.toString('base64');
   }
+  // 单文件版内联三支最常用的高清视频（其余动作会自动回退 GIF）
+  const HD_SET = ['daiji-huxi-xiuxian', 'dianji-huiying-kaixin-yuedong', 'shuijiao-xunhuan'];
+  for (const n of HD_SET) {
+    try {
+      const b = await fs.readFile(path.join(ROOT, 'assets', 'webm', n + '.webm'));
+      map[n + '.webm'] = 'data:video/webm;base64,' + b.toString('base64');
+      bytes += b.length;
+    } catch (e) { console.log('  · 跳过 ' + n + '.webm'); }
+  }
+
   const idle = map['daiji-huxi-xiuxian.gif'];
   if (!idle) throw new Error('缺少 idle 素材 daiji-huxi-xiuxian.gif');
 

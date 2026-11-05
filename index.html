@@ -36,9 +36,11 @@
   </header>
 
   <main class="stage">
+    <div class="dust" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></div>
     <div id="bubble" class="bubble" hidden><span id="bubbleText"></span></div>
 
     <button id="petWrap" class="pet-wrap" aria-label="摸摸宠物">
+      <video id="petVideo" class="pet" muted playsinline autoplay loop hidden></video>
       <img id="petImg" class="pet" alt="宠物" src="assets/gifs/daiji-huxi-xiuxian.gif" draggable="false">
       <span class="pet-shadow" aria-hidden="true"></span>
     </button>
@@ -124,6 +126,11 @@
           <option value="deepseek-chat">deepseek-chat（便宜，够用）</option>
           <option value="deepseek-reasoner">deepseek-reasoner（慢，更聪明）</option>
         </select>
+      </label>
+
+      <label class="check-row">
+        <input id="inpHd" type="checkbox" checked>
+        <span>高清动作<em>（WebM，更清晰；画面异常时可关掉）</em></span>
       </label>
 
       <div class="field">
